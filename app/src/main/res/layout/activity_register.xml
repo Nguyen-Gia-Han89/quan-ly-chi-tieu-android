@@ -34,7 +34,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Nhập tên tài khoản của bạn (Email)"
+            android:text="Nhập Email của bạn"
             android:textColor="#221155"
             android:textSize="14sp" />
         <EditText

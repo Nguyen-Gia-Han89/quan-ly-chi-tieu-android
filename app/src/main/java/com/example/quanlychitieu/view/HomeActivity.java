@@ -10,7 +10,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import com.example.quanlychitieu.R;
-// 🌟 THÊM KHAI BÁO CỦA BẠN VÀO ĐÂY
 import com.example.quanlychitieu.controller.TransactionController;
 import com.example.quanlychitieu.model.Transaction;
 import java.text.DecimalFormat;
@@ -26,6 +25,7 @@ public class HomeActivity extends AppCompatActivity {
     private TextView txtTotalSpent;
     private TextView txtHomeUserName;
 
+    // Đã dọn dẹp xung đột Git và giữ lại biến Controller hợp lệ
     private TransactionController transactionController;
 
     @Override
@@ -95,7 +95,7 @@ public class HomeActivity extends AppCompatActivity {
 
                 txtTotalSpent.setText(formattedPrice + " VNĐ");
 
-                // LOGIC KIỂM TRA HẠN MỨC CỦA BẠN
+                // LOGIC KIỂM TRA HẠN MỨC CHI TIÊU
                 if (limit > 0 && totalSpent > limit) {
                     txtTotalSpent.setTextColor(Color.RED);
                     Toast.makeText(HomeActivity.this, "Cảnh báo: Chi tiêu vượt quá ngân sách cài đặt!", Toast.LENGTH_LONG).show();

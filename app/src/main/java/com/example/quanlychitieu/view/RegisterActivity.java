@@ -30,11 +30,19 @@ public class RegisterActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
+
         edtEmail = findViewById(R.id.edtRegisterEmail);
         edtPassword = findViewById(R.id.edtRegisterPassword);
         edtConfirmPassword = findViewById(R.id.edtRegisterConfirmPassword);
         btnSubmitRegister = findViewById(R.id.btnSubmitRegister);
         txtError = findViewById(R.id.txtRegisterError);
+
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("Đăng ký tài khoản"); // Đặt tiêu đề cho thanh Action Bar
+        }
+
 
         btnSubmitRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -58,25 +66,25 @@ public class RegisterActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Tiến hành kết nối Firebase tạo tài khoản
+
                 mAuth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override
-                            public void onComplete(@NonNull Task<AuthResult> taskAuth) { // Đổi tên thành taskAuth
+                            public void onComplete(@NonNull Task<AuthResult> taskAuth) {
                                 if (taskAuth.isSuccessful()) {
                                     FirebaseUser user = mAuth.getCurrentUser();
                                     if (user != null) {
-                                        // Gọi lệnh gửi mail xác thực độc lập
+                                        // Gửi email xác thực kích hoạt tài khoản
                                         user.sendEmailVerification()
                                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                     @Override
-                                                    public void onComplete(@NonNull Task<Void> taskEmail) { // Đổi tên thành taskEmail để không bị trùng
+                                                    public void onComplete(@NonNull Task<Void> taskEmail) {
                                                         if (taskEmail.isSuccessful()) {
                                                             Toast.makeText(RegisterActivity.this,
                                                                     "Đăng ký thành công! Hãy kiểm tra hộp thư Gmail để xác thực.",
                                                                     Toast.LENGTH_LONG).show();
 
-                                                            // Đăng xuất tạm thời để tránh giữ lại phiên đăng nhập khi chưa xác thực mail
+
                                                             mAuth.signOut();
 
                                                             Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
@@ -95,6 +103,13 @@ public class RegisterActivity extends AppCompatActivity {
                         });
             }
         });
+    }
+
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
     }
 
     private void showError(String message) {

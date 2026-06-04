@@ -22,48 +22,60 @@
         android:textColor="#5E17EB"
         android:textSize="28sp"
         android:textStyle="bold"
-        android:fontFamily="@font/madimione"/>
+        android:fontFamily="@font/madimione"/> <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="40dp"
+    android:orientation="vertical"
+    android:paddingHorizontal="20dp">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:orientation="vertical"
-        android:paddingHorizontal="20dp">
+        android:text="Nhập tên tài khoản của bạn"
+        android:textColor="#221155"
+        android:textSize="14sp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Nhập tên tài khoản của bạn"
-            android:textColor="#221155"
-            android:textSize="14sp" />
+    <EditText
+        android:id="@+id/edtLoginEmail"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_marginTop="6dp"
+        android:background="#FFFFFF"
+        android:inputType="textEmailAddress"
+        android:paddingHorizontal="12dp" />
 
-        <EditText
-            android:id="@+id/edtLoginEmail"
-            android:layout_width="match_parent"
-            android:layout_height="45dp"
-            android:layout_marginTop="6dp"
-            android:background="#FFFFFF"
-            android:inputType="textEmailAddress"
-            android:paddingHorizontal="12dp" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Mật khẩu"
+        android:textColor="#221155"
+        android:textSize="14sp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Mật khẩu"
-            android:textColor="#221155"
-            android:textSize="14sp" />
+    <EditText
+        android:id="@+id/edtLoginPassword"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_marginTop="6dp"
+        android:background="#FFFFFF"
+        android:inputType="textPassword"
+        android:paddingHorizontal="12dp" />
 
-        <EditText
-            android:id="@+id/edtLoginPassword"
-            android:layout_width="match_parent"
-            android:layout_height="45dp"
-            android:layout_marginTop="6dp"
-            android:background="#FFFFFF"
-            android:inputType="textPassword"
-            android:paddingHorizontal="12dp" />
-    </LinearLayout>
+    <TextView
+        android:id="@+id/txtForgotPassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginTop="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:text="Quên mật khẩu?"
+        android:textColor="#5E17EB"
+        android:textSize="14sp"
+        android:textStyle="italic" />
+</LinearLayout>
 
     <TextView
         android:id="@+id/txtLoginError"
@@ -80,10 +92,24 @@
         android:id="@+id/btnSubmitLogin"
         android:layout_width="160dp"
         android:layout_height="48dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="20dp"
         android:backgroundTint="#B462FF"
         android:text="Đăng nhập"
         android:textColor="#FFFFFF"
         android:textStyle="bold"
         app:cornerRadius="8dp" />
+
+    <TextView
+        android:id="@+id/txtGoToRegister"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:text="Chưa có tài khoản? Đăng ký ngay"
+        android:textColor="#5E17EB"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
 </LinearLayout>
