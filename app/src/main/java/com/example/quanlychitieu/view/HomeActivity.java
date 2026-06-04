@@ -16,7 +16,7 @@ public class HomeActivity extends AppCompatActivity {
     private LinearLayout btnHistory, btnStats, btnCreateExpense;
     private CardView btnProfile;
     private TextView txtTotalSpent;
-    private TextView txtHomeUserName; // Hiển thị tên người dùng lấy từ SharedPreferences
+    private TextView txtHomeUserName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +27,7 @@ public class HomeActivity extends AppCompatActivity {
         btnProfile = findViewById(R.id.btnProfile);
         btnHistory = findViewById(R.id.btnHistory);
         btnStats = findViewById(R.id.btnStats);
-        btnCreateExpense = findViewById(R.id.btnCreateExpense); // Cả cụm "Tạo chi tiêu mới" ở góc dưới
+        btnCreateExpense = findViewById(R.id.btnCreateExpense);
         txtTotalSpent = findViewById(R.id.txtTotalSpent);
 
 

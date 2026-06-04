@@ -21,6 +21,8 @@ public class LoginActivity extends AppCompatActivity {
     private EditText edtEmail, edtPassword;
     private Button btnSubmitLogin;
     private TextView txtError;
+    private TextView txtForgotPassword;
+    private TextView txtGoToRegister;
     private FirebaseAuth mAuth;
 
     @Override
@@ -29,11 +31,22 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null && currentUser.isEmailVerified()) {
+            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
 
         edtEmail = findViewById(R.id.edtLoginEmail);
         edtPassword = findViewById(R.id.edtLoginPassword);
         btnSubmitLogin = findViewById(R.id.btnSubmitLogin);
         txtError = findViewById(R.id.txtLoginError);
+        txtForgotPassword = findViewById(R.id.txtForgotPassword);
+        txtGoToRegister = findViewById(R.id.txtGoToRegister);
+
 
         btnSubmitLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,20 +67,18 @@ public class LoginActivity extends AppCompatActivity {
                                 if (task.isSuccessful()) {
                                     FirebaseUser user = mAuth.getCurrentUser();
 
-                                    // KIỂM TRA XEM NGƯỜI DÙNG ĐÃ NHẤP VÀO LINK XÁC THỰC TRONG EMAIL CHƯA
+
                                     if (user != null && user.isEmailVerified()) {
                                         txtError.setVisibility(View.GONE);
                                         Toast.makeText(LoginActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
 
-                                        // 🌟 ĐÃ CẬP NHẬT: Thay đổi đích đến từ BudgetActivity sang HomeActivity (Dashboard chính)
                                         Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
                                         startActivity(intent);
-                                        finish(); // Đóng LoginActivity để chặn việc nhấn phím Back quay lại giao diện đăng nhập
+                                        finish();
                                     } else {
-                                        // Nếu chưa bấm link kích hoạt tài khoản trong hòm thư
                                         txtError.setText("Tài khoản chưa xác thực! Hãy kiểm tra Gmail của bạn.");
                                         txtError.setVisibility(View.VISIBLE);
-                                        mAuth.signOut(); // Đăng xuất tạm thời để ép xác thực
+                                        mAuth.signOut();
                                     }
                                 } else {
                                     txtError.setText("Mật khẩu hoặc tài khoản không đúng");
@@ -77,5 +88,37 @@ public class LoginActivity extends AppCompatActivity {
                         });
             }
         });
+
+
+        txtForgotPassword.setOnClickListener(v -> {
+            String email = edtEmail.getText().toString().trim();
+
+            if (email.isEmpty()) {
+                txtError.setText("Vui lòng điền Email của bạn vào ô tài khoản trước!");
+                txtError.setVisibility(View.VISIBLE);
+                return;
+            }
+
+            mAuth.sendPasswordResetEmail(email)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            txtError.setVisibility(View.GONE);
+                            Toast.makeText(LoginActivity.this,
+                                    "Đường link đặt lại mật khẩu đã được gửi vào Gmail của bạn!",
+                                    Toast.LENGTH_LONG).show();
+                        } else {
+                            txtError.setText("Lỗi: Không thể gửi email khôi phục. Vui lòng kiểm tra lại Email!");
+                            txtError.setVisibility(View.VISIBLE);
+                        }
+                    });
+        });
+
+
+        if (txtGoToRegister != null) {
+            txtGoToRegister.setOnClickListener(v -> {
+                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                startActivity(intent);
+            });
+        }
     }
 }
