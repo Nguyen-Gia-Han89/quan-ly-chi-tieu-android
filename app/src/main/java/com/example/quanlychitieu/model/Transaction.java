@@ -9,11 +9,13 @@ public class Transaction implements Serializable {
     private String category;
     private String date;
     private String note;
-    private String type; // "EXPENSE" (Chi) hoặc "INCOME" (Thu)
+    private String type; // "EXPENSE" hoặc "INCOME"
 
+    // Bắt buộc phải có constructor rỗng cho Firebase Firestore
     public Transaction() {
     }
 
+    // Constructor đầy đủ tham số đồng bộ toàn hệ thống
     public Transaction(String id, String userId, double amount, String category, String date, String note, String type) {
         this.id = id;
         this.userId = userId;
@@ -24,7 +26,6 @@ public class Transaction implements Serializable {
         this.type = type;
     }
 
-    // Getters và Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

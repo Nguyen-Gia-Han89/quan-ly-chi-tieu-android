@@ -49,6 +49,8 @@
         <activity
             android:name=".view.TransactionActivity"
             android:exported="false" />
+
+        <activity android:name=".view.HistoryActivity" />
     </application>
 
 </manifest>

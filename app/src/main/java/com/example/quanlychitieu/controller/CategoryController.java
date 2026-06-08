@@ -2,8 +2,10 @@ package com.example.quanlychitieu.controller;
 
 import com.example.quanlychitieu.model.Category;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.WriteBatch;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,58 +18,182 @@ public class CategoryController {
         mAuth = FirebaseAuth.getInstance();
     }
 
+    // Giao diện lắng nghe xử lý danh sách danh mục trả về cho View
     public interface CategoryCallback {
-        void onSuccess();
-        void onFailure(String errorMessage);
-    }
-
-    public interface CategoryListCallback {
         void onLoaded(List<Category> categories);
         void onFailure(String errorMessage);
     }
 
-    // [CREATE] - Cho phép người dùng tự nhập tạo Danh mục mới
-    public void addCustomCategory(String categoryName, CategoryCallback callback) {
-        if (mAuth.getCurrentUser() == null) {
-            callback.onFailure("Người dùng chưa đăng nhập!");
-            return;
-        }
-        String uid = mAuth.getCurrentUser().getUid();
-        String id = db.collection("categories").document().getId();
-
-        Category newCategory = new Category(id, categoryName, uid);
-
-        db.collection("categories").document(id).set(newCategory)
-                .addOnSuccessListener(aVoid -> callback.onSuccess())
-                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    // Giao diện lắng nghe xử lý cho các hành động Thêm/Sửa/Xóa đơn lẻ
+    public interface ActionCallback {
+        void onSuccess();
+        void onFailure(String errorMessage);
     }
 
-    // [READ] - Lấy danh sách danh mục (Hệ thống + Cá nhân tự tạo)
-    public void getAllCategories(CategoryListCallback callback) {
-        String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "anonymous";
+    /**
+     * [READ] - Lấy danh mục hợp lệ cho User hiện tại đang đăng nhập.
+     * Tự động kiểm tra và đẩy danh mục mặc định lên Firebase nếu database trống.
+     */
+    public void getAllCategories(CategoryCallback callback) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            callback.onFailure("Người dùng chưa đăng nhập hệ thống!");
+            return;
+        }
+
+        String currentUid = currentUser.getUid();
 
         db.collection("categories")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<Category> list = new ArrayList<>();
+                    List<Category> accessibleCategories = new ArrayList<>();
+                    boolean hasSystemCategories = false;
+
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                        Category cat = doc.toObject(Category.class);
-                        if (cat != null) {
-                            if (cat.getUserId().equals("SYSTEM") || cat.getUserId().equals(uid)) {
-                                list.add(cat);
+                        Category category = doc.toObject(Category.class);
+                        if (category != null) {
+                            if (category.getId() == null || category.getId().isEmpty()) {
+                                category.setId(doc.getId());
+                            }
+
+                            String catUserId = category.getUserId();
+                            if ("SYSTEM".equalsIgnoreCase(catUserId)) {
+                                hasSystemCategories = true;
+                                accessibleCategories.add(category);
+                            } else if (currentUid.equals(catUserId)) {
+                                accessibleCategories.add(category);
                             }
                         }
                     }
 
-                    // Dự phòng nếu db trống, tự cung cấp list danh mục cơ bản ban đầu
-                    if (list.isEmpty()) {
-                        list.add(new Category("c1", "Ăn uống", "SYSTEM"));
-                        list.add(new Category("c2", "Đi lại", "SYSTEM"));
-                        list.add(new Category("c3", "Mua sắm", "SYSTEM"));
-                        list.add(new Category("c4", "Giải trí", "SYSTEM"));
+                    // TỰ ĐỘNG KHỞI TẠO NẾU FIREBASE CHƯA CÓ DANH MỤC MẶC ĐỊNH
+                    if (!hasSystemCategories) {
+                        initializeSystemCategoriesInFirebase(new ActionCallback() {
+                            @Override
+                            public void onSuccess() {
+                                // Sau khi nạp thành công lên Firebase, tiến hành tải lại toàn bộ dữ liệu lần nữa
+                                getAllCategories(callback);
+                            }
+
+                            @Override
+                            public void onFailure(String errorMessage) {
+                                callback.onFailure("Không thể khởi tạo danh mục hệ thống: " + errorMessage);
+                            }
+                        });
+                    } else {
+                        callback.onLoaded(accessibleCategories);
                     }
-                    callback.onLoaded(list);
                 })
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    /**
+     * Hàm phụ trợ: Tự động lưu hàng loạt (Batch Write) các danh mục mặc định lên Firebase
+     */
+    private void initializeSystemCategoriesInFirebase(ActionCallback callback) {
+        WriteBatch batch = db.batch();
+
+        // Danh sách các danh mục mặc định bạn muốn thiết lập cho hệ thống
+        String[] defaultNames = {"Ăn uống", "Tiền lương", "Mua sắm", "Di chuyển", "Giải trí"};
+
+        for (String name : defaultNames) {
+            String generatedId = db.collection("categories").document().getId();
+            Category systemCat = new Category(generatedId, name, "SYSTEM");
+            batch.set(db.collection("categories").document(generatedId), systemCat);
+        }
+
+        batch.commit()
+                .addOnSuccessListener(aVoid -> callback.onSuccess())
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    /**
+     * [CREATE] - Thêm một danh mục cá nhân mới
+     * Tự động gán userId của tài khoản đang thao tác để bảo mật danh mục này.
+     */
+    public void addCustomCategory(String categoryName, ActionCallback callback) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            callback.onFailure("Vui lòng đăng nhập để thực hiện chức năng này!");
+            return;
+        }
+
+        if (categoryName == null || categoryName.trim().isEmpty()) {
+            callback.onFailure("Tên danh mục không được để trống!");
+            return;
+        }
+
+        String generatedId = db.collection("categories").document().getId();
+        Category newCategory = new Category(generatedId, categoryName.trim(), currentUser.getUid());
+
+        db.collection("categories")
+                .document(generatedId)
+                .set(newCategory)
+                .addOnSuccessListener(aVoid -> callback.onSuccess())
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    /**
+     * [UPDATE] - Chỉnh sửa thông tin danh mục
+     */
+    public void updateCategory(Category category, ActionCallback callback) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            callback.onFailure("Chưa đăng nhập!");
+            return;
+        }
+
+        if (category == null || category.getId() == null || category.getId().isEmpty()) {
+            callback.onFailure("Dữ liệu cập nhật không hợp lệ!");
+            return;
+        }
+
+        if ("SYSTEM".equalsIgnoreCase(category.getUserId())) {
+            callback.onFailure("Không có quyền chỉnh sửa danh mục mặc định của hệ thống!");
+            return;
+        }
+
+        if (!currentUser.getUid().equals(category.getUserId())) {
+            callback.onFailure("Bạn không có quyền chỉnh sửa danh mục này!");
+            return;
+        }
+
+        db.collection("categories")
+                .document(category.getId())
+                .set(category)
+                .addOnSuccessListener(aVoid -> callback.onSuccess())
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    /**
+     * [DELETE] - Xóa danh mục dựa vào đối tượng cụ thể kèm kiểm tra đặc quyền sở hữu
+     */
+    public void deleteCategory(Category category, ActionCallback callback) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            callback.onFailure("Chưa đăng nhập!");
+            return;
+        }
+
+        if (category == null || category.getId() == null || category.getId().isEmpty()) {
+            callback.onFailure("Danh mục xóa không tồn tại!");
+            return;
+        }
+
+        if ("SYSTEM".equalsIgnoreCase(category.getUserId())) {
+            callback.onFailure("Không thể xóa danh mục mặc định của hệ thống!");
+            return;
+        }
+
+        if (!currentUser.getUid().equals(category.getUserId())) {
+            callback.onFailure("Bạn không có quyền xóa danh mục của người khác!");
+            return;
+        }
+
+        db.collection("categories")
+                .document(category.getId())
+                .delete()
+                .addOnSuccessListener(aVoid -> callback.onSuccess())
                 .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
     }
 }
