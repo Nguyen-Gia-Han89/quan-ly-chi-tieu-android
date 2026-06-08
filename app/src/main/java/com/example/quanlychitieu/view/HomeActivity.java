@@ -23,6 +23,7 @@ public class HomeActivity extends AppCompatActivity {
     private LinearLayout btnHistory, btnStats, btnCreateExpense;
     private CardView btnProfile;
     private TextView txtTotalSpent;
+    private TextView txtTotalIncome;
     private TextView txtHomeUserName;
 
     // Đã dọn dẹp xung đột Git và giữ lại biến Controller hợp lệ
@@ -40,6 +41,7 @@ public class HomeActivity extends AppCompatActivity {
         btnStats = findViewById(R.id.btnStats);
         btnCreateExpense = findViewById(R.id.btnCreateExpense);
         txtTotalSpent = findViewById(R.id.txtTotalSpent);
+        txtTotalIncome = findViewById(R.id.txtTotalIncome);
         txtHomeUserName = findViewById(R.id.txtHomeUserName);
 
         btnProfile.setOnClickListener(v -> {
@@ -48,7 +50,8 @@ public class HomeActivity extends AppCompatActivity {
         });
 
         btnHistory.setOnClickListener(v -> {
-            Toast.makeText(this, "Mở Nhật ký chi tiêu", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(HomeActivity.this, HistoryActivity.class);
+            startActivity(intent);
         });
 
         btnStats.setOnClickListener(v -> {
@@ -56,8 +59,6 @@ public class HomeActivity extends AppCompatActivity {
         });
 
         btnCreateExpense.setOnClickListener(v -> {
-            Toast.makeText(HomeActivity.this, "Tạo chi tiêu mới", Toast.LENGTH_SHORT).show();
-
             Intent intent = new Intent(HomeActivity.this, TransactionActivity.class);
             intent.putExtra(TransactionActivity.KEY_MODE, TransactionActivity.MODE_ADD);
             startActivity(intent);
@@ -89,14 +90,18 @@ public class HomeActivity extends AppCompatActivity {
 
         transactionController.getTransactionsByMonth(currentMonthYear, new TransactionController.TransactionListCallback() {
             @Override
-            public void onLoaded(List<Transaction> transactions, long totalSpent) {
+            public void onLoaded(List<Transaction> transactions, double totalIncome, double totalExpense) {
                 DecimalFormat decimalFormat = new DecimalFormat("#,###");
-                String formattedPrice = decimalFormat.format(totalSpent);
 
+                String formattedIncome = decimalFormat.format(totalIncome);
+                txtTotalIncome.setText(formattedIncome + " VNĐ");
+
+                // Ở màn hình Home, hiển thị tổng số tiền đã CHI TIÊU (totalExpense)
+                String formattedPrice = decimalFormat.format(totalExpense);
                 txtTotalSpent.setText(formattedPrice + " VNĐ");
 
                 // LOGIC KIỂM TRA HẠN MỨC CHI TIÊU
-                if (limit > 0 && totalSpent > limit) {
+                if (limit > 0 && totalExpense > limit) {
                     txtTotalSpent.setTextColor(Color.RED);
                     Toast.makeText(HomeActivity.this, "Cảnh báo: Chi tiêu vượt quá ngân sách cài đặt!", Toast.LENGTH_LONG).show();
                 } else {
@@ -109,6 +114,7 @@ public class HomeActivity extends AppCompatActivity {
                 // Nếu lỗi mạng không lấy được tiền từ Firebase thì chạy tạm số 0
                 txtTotalSpent.setText("0 VNĐ");
                 txtTotalSpent.setTextColor(Color.parseColor("#5E17EB"));
+                Toast.makeText(HomeActivity.this, "Không thể tải dữ liệu: " + errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }
