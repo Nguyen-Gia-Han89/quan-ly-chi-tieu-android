@@ -149,7 +149,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="20dp"
-                android:weightSum="2">
+                android:weightSum="3">
 
                 <LinearLayout
                     android:id="@+id/btnHistory"
@@ -220,6 +220,43 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="Thống kê chi tiêu"
+                        android:textColor="#1A0066"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- BÁO CÁO CHI TIÊU -->
+                <LinearLayout
+                    android:id="@+id/btnReport"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="8dp"
+                    android:foreground="?attr/selectableItemBackgroundBorderless"
+                    android:orientation="vertical">
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="85dp"
+                        android:layout_height="85dp"
+                        app:cardBackgroundColor="#B462FF"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="3dp">
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:padding="20dp"
+                            android:src="@drawable/ic_money_mate" />
+                    </androidx.cardview.widget.CardView>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Báo cáo chi tiêu"
                         android:textColor="#1A0066"
                         android:textSize="13sp"
                         android:textStyle="bold" />

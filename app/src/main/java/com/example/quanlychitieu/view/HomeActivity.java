@@ -29,6 +29,8 @@ public class HomeActivity extends AppCompatActivity {
     // Đã dọn dẹp xung đột Git và giữ lại biến Controller hợp lệ
     private TransactionController transactionController;
 
+    private LinearLayout btnReport;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,6 +45,7 @@ public class HomeActivity extends AppCompatActivity {
         txtTotalSpent = findViewById(R.id.txtTotalSpent);
         txtTotalIncome = findViewById(R.id.txtTotalIncome);
         txtHomeUserName = findViewById(R.id.txtHomeUserName);
+        btnReport = findViewById(R.id.btnReport);
 
         btnProfile.setOnClickListener(v -> {
             Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
@@ -57,6 +60,12 @@ public class HomeActivity extends AppCompatActivity {
         btnStats.setOnClickListener(v -> {
             Toast.makeText(this, "Mở Thống kê chi tiêu", Toast.LENGTH_SHORT).show();
         });
+
+        btnReport.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, ReportActivity.class);
+            startActivity(intent);
+        });
+
 
         btnCreateExpense.setOnClickListener(v -> {
             Intent intent = new Intent(HomeActivity.this, TransactionActivity.class);
