@@ -10,6 +10,8 @@
 
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -51,6 +53,22 @@
             android:exported="false" />
 
         <activity android:name=".view.HistoryActivity" />
+
+        <activity android:name=".view.ReportActivity" />
+        <activity android:name=".view.ReportHistoryActivity" />
+        <activity android:name=".view.CsvViewerActivity" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
     </application>
 
 </manifest>
