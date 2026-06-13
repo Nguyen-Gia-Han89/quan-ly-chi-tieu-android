@@ -34,24 +34,17 @@
             android:textSize="20sp"
             android:textStyle="bold" />
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <ImageView
+            android:id="@+id/imgScanQR"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:layout_alignParentEnd="true"
-            android:gravity="center"
-            android:orientation="vertical">
-            <ImageView
-                android:layout_width="35dp"
-                android:layout_height="35dp"
-                android:src="@drawable/logo" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="MoneyMate"
-                android:textColor="#5E17EB"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+            android:layout_centerVertical="true"
+            android:src="@android:drawable/ic_menu_camera"
+            android:contentDescription="Quét VietQR"
+            app:tint="#5E17EB"
+            android:clickable="true"
+            android:focusable="true"/>
     </RelativeLayout>
 
     <androidx.cardview.widget.CardView

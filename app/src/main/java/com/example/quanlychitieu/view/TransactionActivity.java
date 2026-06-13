@@ -1,10 +1,14 @@
 package com.example.quanlychitieu.view;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -25,6 +29,13 @@ import com.example.quanlychitieu.model.Category;
 import com.example.quanlychitieu.model.Transaction;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.mlkit.vision.common.InputImage;
+import android.Manifest;
+import android.content.pm.PackageManager;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -58,6 +69,11 @@ public class TransactionActivity extends AppCompatActivity {
     private Transaction selectedTransaction;
     private List<Category> categoryList = new ArrayList<>();
     private ArrayAdapter<Category> categoryAdapter;
+    private ImageView imgScanQR;
+    private static final int REQUEST_IMAGE_CAPTURE = 101;
+    private static final int CAMERA_PERMISSION_CODE = 102;
+    private com.google.mlkit.vision.codescanner.GmsBarcodeScanner qrScanner;
+    private com.google.mlkit.vision.text.TextRecognizer textRecognizer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +86,6 @@ public class TransactionActivity extends AppCompatActivity {
         initViews();
         setupCategorySpinner();
         setupDatePicker();
-        setupAuthListener();
 
         if (getIntent() != null) {
             currentMode = getIntent().getIntExtra(KEY_MODE, MODE_ADD);
@@ -82,8 +97,8 @@ public class TransactionActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        txtTxTitle = findViewById(R.id.txtTxTitle);
         imgEditIcon = findViewById(R.id.imgEditIcon);
+        txtTxTitle = findViewById(R.id.txtTxTitle);
 
         edtTxAmount = findViewById(R.id.edtTxAmount);
         edtTxNote = findViewById(R.id.edtTxNote);
@@ -103,6 +118,19 @@ public class TransactionActivity extends AppCompatActivity {
         btnDelete = findViewById(R.id.btnDelete);
         btnSaveUpdate = findViewById(R.id.btnSaveUpdate);
         btnCancelUpdate = findViewById(R.id.btnCancelUpdate);
+
+        imgScanQR = findViewById(R.id.imgScanQR);
+
+        // Khởi tạo bộ quét QR Code
+        com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions options =
+                new com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions.Builder()
+                        .setBarcodeFormats(com.google.mlkit.vision.barcode.common.Barcode.FORMAT_QR_CODE)
+                        .build();
+        qrScanner = com.google.mlkit.vision.codescanner.GmsBarcodeScanning.getClient(this, options);
+
+        // Khởi tạo bộ nhận diện chữ viết OCR (Quét Bill)
+        textRecognizer = com.google.mlkit.vision.text.TextRecognition.getClient(
+                com.google.mlkit.vision.text.latin.TextRecognizerOptions.DEFAULT_OPTIONS);
     }
 
     private void setupCategorySpinner() {
@@ -192,7 +220,9 @@ public class TransactionActivity extends AppCompatActivity {
         }
 
         // VỊ TRÍ GỌI HÀM 1: Cập nhật giao diện Tab ngay khi vừa chuyển màn hình/chế độ
-        updateRadioButtonStyles();
+        if (rbExpense != null && rbIncome != null) {
+            updateRadioButtonStyles();
+        }
     }
 
     private void fillDataInputs() {
@@ -249,7 +279,7 @@ public class TransactionActivity extends AppCompatActivity {
         btnDelete.setOnClickListener(v -> {
             if (currentMode == MODE_DETAIL) {
                 new AlertDialog.Builder(this)
-                        .setTitle("Xác nhận xóa")
+                        .setTitle("Xác nano xóa")
                         .setMessage("Bạn có chắc chắn muốn xóa giao dịch này không?")
                         .setPositiveButton("Xóa", (dialog, which) -> deleteTransaction())
                         .setNegativeButton("Hủy", null)
@@ -259,12 +289,34 @@ public class TransactionActivity extends AppCompatActivity {
 
         // VỊ TRÍ GỌI HÀM 2: Lắng nghe sự kiện chuyển khoản Thu/Chi đổi màu tức thì
         rgTransactionType.setOnCheckedChangeListener((group, checkedId) -> updateRadioButtonStyles());
+
+        imgScanQR.setOnClickListener(v -> {
+            if (currentMode == MODE_DETAIL) return; // Không cho quét khi đang xem chi tiết
+
+            // Tạo menu lựa chọn phương thức quét
+            String[] options = {"Quét mã QR / Chuyển khoản (VietQR)", "Chụp ảnh & Quét Bill giấy (OCR)"};
+
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Chọn phương thức quét")
+                    .setItems(options, (dialog, which) -> {
+                        if (which == 0) {
+                            // Người dùng chọn quét QR
+                            startQrScanning();
+                        } else if (which == 1) {
+                            // Người dùng chọn chụp ảnh Bill giấy
+                            startBillCamera();
+                        }
+                    })
+                    .show();
+        });
     }
 
     // HÀM ĐỔI STYLE THU/CHI TOÀN DIỆN - KHÔNG LO MẤT CHỮ
     private void updateRadioButtonStyles() {
         int density = (int) getResources().getDisplayMetrics().density;
         int radius = 12 * density;
+
+        if (rbExpense == null || rbIncome == null) return;
 
         if (rbExpense.isChecked()) {
             // Tab Khoản chi được tích chọn
@@ -396,8 +448,217 @@ public class TransactionActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (authStateListener != null) {
+        if (authStateListener != null && FirebaseAuth.getInstance() != null) {
             FirebaseAuth.getInstance().removeAuthStateListener(authStateListener);
+        }
+    }
+
+    // HÀM 1: Kích hoạt quét QR Code
+    private void startQrScanning() {
+        qrScanner.startScan()
+                .addOnSuccessListener(barcode -> {
+                    String rawValue = barcode.getRawValue();
+                    if (rawValue != null) {
+                        parseQrCodeData(rawValue);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Quét mã thất bại: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    // HÀM 2: Mở camera hệ thống để chụp ảnh Bill giấy
+    private void startBillCamera() {
+
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.CAMERA},
+                    CAMERA_PERMISSION_CODE);
+
+            return;
+        }
+
+        try {
+            Intent takePictureIntent =
+                    new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+            startActivityForResult(
+                    takePictureIntent,
+                    REQUEST_IMAGE_CAPTURE);
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            Toast.makeText(
+                    this,
+                    e.getClass().getSimpleName()
+                            + ": "
+                            + e.getMessage(),
+                    Toast.LENGTH_LONG
+            ).show();
+
+            Log.e("CAMERA_ERROR", "Camera error", e);
+        }
+    }
+
+    // Phân tích dữ liệu từ mã QR quét được
+    private void parseQrCodeData(String qrData) {
+        try {
+            if (qrData.startsWith("000201")) { // Định dạng VietQR
+                if (qrData.contains("54")) {
+                    int index54 = qrData.indexOf("54");
+                    int length = Integer.parseInt(qrData.substring(index54 + 2, index54 + 4));
+                    String amount = qrData.substring(index54 + 4, index54 + 4 + length);
+                    edtTxAmount.setText(amount);
+                }
+                if (qrData.contains("62")) {
+                    int index62 = qrData.indexOf("62");
+                    int totalLength = Integer.parseInt(qrData.substring(index62 + 2, index62 + 4));
+                    String subFields = qrData.substring(index62 + 4, index62 + 4 + totalLength);
+                    if (subFields.contains("08")) {
+                        int index08 = subFields.indexOf("08");
+                        int subLength = Integer.parseInt(subFields.substring(index08 + 2, index08 + 4));
+                        edtTxNote.setText(subFields.substring(index08 + 4, index08 + 4 + subLength));
+                    } else {
+                        edtTxNote.setText("Thanh toán mã VietQR");
+                    }
+                }
+                rbExpense.setChecked(true);
+                updateRadioButtonStyles();
+                Toast.makeText(this, "Đã nhập dữ liệu từ VietQR!", Toast.LENGTH_SHORT).show();
+            } else {
+                edtTxNote.setText(qrData);
+                Toast.makeText(this, "Đã lưu nội dung QR vào Ghi chú!", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            edtTxNote.setText(qrData);
+        }
+    }
+
+    // Phân tích văn bản từ ảnh chụp Bill giấy để mò Số tiền
+    private void analyzeBillText(String billText) {
+        String[] lines = billText.split("\n");
+        String detectedAmount = "";
+
+        // Tìm kiếm số tiền theo từ khóa thông dụng trên Bill Việt Nam
+        for (String line : lines) {
+            String lowerLine = line.toLowerCase();
+            if (lowerLine.contains("tổng cộng") || lowerLine.contains("thành tiền")
+                    || lowerLine.contains("thanh toán") || lowerLine.contains("total")) {
+
+                String numberOnly = line.replaceAll("[^0-9]", "");
+                if (!numberOnly.isEmpty()) {
+                    detectedAmount = numberOnly;
+                    break;
+                }
+            }
+        }
+
+        // Thuật toán phụ: Nếu không thấy từ khóa, lấy số lớn nhất hợp lệ trên bill
+        if (detectedAmount.isEmpty()) {
+            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\b\\d{1,3}(?:[.,]\\d{3})*\\b");
+            java.util.regex.Matcher matcher = pattern.matcher(billText);
+            long maxAmount = 0;
+            while (matcher.find()) {
+                try {
+                    String numStr = matcher.group().replaceAll("[.,]", "");
+                    long val = Long.parseLong(numStr);
+                    if (val > maxAmount && val > 1000 && val < 50000000) { // Từ 1k đến 50 triệu
+                        maxAmount = val;
+                    }
+                } catch (Exception ignored) {}
+            }
+            if (maxAmount > 0) detectedAmount = String.valueOf(maxAmount);
+        }
+
+        // Đổ dữ liệu lên giao diện người dùng
+        if (!detectedAmount.isEmpty()) {
+            edtTxAmount.setText(detectedAmount);
+            if (lines.length > 0) edtTxNote.setText("Bill: " + lines[0].trim());
+            Toast.makeText(this, "Đã tự động điền số tiền từ hóa đơn!", Toast.LENGTH_SHORT).show();
+        } else {
+            edtTxNote.setText(billText);
+            Toast.makeText(this, "Không nhận diện rõ số tiền, đã lưu tạm chữ vào Ghi chú!", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode,
+                                    int resultCode,
+                                    Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_IMAGE_CAPTURE
+                && resultCode == RESULT_OK
+                && data != null) {
+
+            Bundle extras = data.getExtras();
+
+            if (extras == null) {
+                Toast.makeText(this,
+                        "extras = null",
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+
+            if (imageBitmap == null) {
+                Toast.makeText(this,
+                        "imageBitmap = null",
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            Toast.makeText(this,
+                    "Đang phân tích hóa đơn...",
+                    Toast.LENGTH_SHORT).show();
+
+            InputImage image =
+                    InputImage.fromBitmap(imageBitmap, 0);
+
+            textRecognizer.process(image)
+                    .addOnSuccessListener(visionText ->
+                            analyzeBillText(visionText.getText()))
+                    .addOnFailureListener(e ->
+                            Toast.makeText(this,
+                                    "OCR lỗi: " + e.getMessage(),
+                                    Toast.LENGTH_LONG).show());
+        }
+    }
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode,
+            String[] permissions,
+            int[] grantResults) {
+
+        super.onRequestPermissionsResult(
+                requestCode,
+                permissions,
+                grantResults);
+
+        if (requestCode == CAMERA_PERMISSION_CODE) {
+
+            if (grantResults.length > 0
+                    && grantResults[0]
+                    == PackageManager.PERMISSION_GRANTED) {
+
+                startBillCamera();
+
+            } else {
+
+                Toast.makeText(
+                        this,
+                        "Bạn cần cấp quyền Camera để chụp hóa đơn",
+                        Toast.LENGTH_LONG
+                ).show();
+            }
         }
     }
 }

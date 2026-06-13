@@ -46,11 +46,16 @@ public class HistoryActivity extends AppCompatActivity {
         // Thiết lập RecyclerView hiển thị danh sách dạng Linear dọc
         rvTransactions.setLayoutManager(new LinearLayoutManager(this));
 
-        // Khởi tạo Adapter với danh sách rỗng ban đầu và bắt sự kiện Click Item để đi đến xem chi tiết/Sửa
+        // KHỞI TẠO ADAPTER: Đã sửa lại logic click item để xem chi tiết
         transactionAdapter = new TransactionAdapter(new ArrayList<>(), transaction -> {
             Intent intent = new Intent(HistoryActivity.this, TransactionActivity.class);
+
+            // 1. Chuyển sang chế độ xem chi tiết giao dịch (MODE_DETAIL = 2)
             intent.putExtra(TransactionActivity.KEY_MODE, TransactionActivity.MODE_DETAIL);
+
+            // 2. Truyền object giao dịch được click sang màn hình TransactionActivity để hiển thị dữ liệu lên form
             intent.putExtra(TransactionActivity.KEY_DATA, transaction);
+
             startActivity(intent);
         });
         rvTransactions.setAdapter(transactionAdapter);

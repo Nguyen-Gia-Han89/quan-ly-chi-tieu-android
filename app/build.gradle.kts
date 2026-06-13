@@ -37,6 +37,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.play.services.mlkit.text.recognition.common)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
@@ -46,6 +47,12 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+
+    // Thư viện Quét mã QR (Không cần xin quyền camera)
+    implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
+
+    // Thư viện Nhận diện chữ viết OCR (Để quét Bill giấy)
+    implementation("com.google.mlkit:text-recognition:16.0.0")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
