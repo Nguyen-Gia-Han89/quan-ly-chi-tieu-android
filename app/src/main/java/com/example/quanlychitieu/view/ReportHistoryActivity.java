@@ -7,6 +7,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
+import android.widget.TextView;
+import java.util.Collections;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -24,7 +26,8 @@ public class ReportHistoryActivity extends AppCompatActivity {
     private ListView listView;
     private ImageView btnBack;
     private List<String> fileList = new ArrayList<>();
-
+    private TextView txtTotalReports;
+    private TextView txtLatestReport;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,7 +35,8 @@ public class ReportHistoryActivity extends AppCompatActivity {
 
         listView = findViewById(R.id.listViewReports);
         btnBack = findViewById(R.id.btnBackReportHistory);
-
+        txtTotalReports = findViewById(R.id.txtTotalReports);
+        txtLatestReport = findViewById(R.id.txtLatestReport);
         btnBack.setOnClickListener(v -> finish());
 
         loadFiles();
@@ -44,6 +48,37 @@ public class ReportHistoryActivity extends AppCompatActivity {
         Set<String> filesSet = pref.getStringSet("files", new HashSet<>());
 
         fileList = new ArrayList<>(filesSet);
+
+        Collections.sort(fileList, Collections.reverseOrder());
+
+        txtTotalReports.setText(String.valueOf(fileList.size()));
+
+        if (!fileList.isEmpty()) {
+
+            String latest = fileList.get(0)
+                    .replace("report_", "")
+                    .replace(".csv", "");
+
+            String[] p = latest.split("_");
+
+            if (p.length == 6) {
+
+                txtLatestReport.setText(
+                        p[0] + "/" + p[1] + "/" + p[2]
+                                + " "
+                                + p[3] + ":" + p[4]
+                );
+            }
+
+            else if (p.length == 5) {
+
+                txtLatestReport.setText(
+                        p[0] + "/" + p[1]
+                                + " "
+                                + p[2] + ":" + p[3]
+                );
+            }
+        }
 
         if (fileList.isEmpty()) {
             Toast.makeText(this, "Chưa có báo cáo nào", Toast.LENGTH_SHORT).show();

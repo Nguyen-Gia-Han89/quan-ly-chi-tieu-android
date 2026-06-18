@@ -37,7 +37,6 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-    implementation(libs.play.services.mlkit.text.recognition.common)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
