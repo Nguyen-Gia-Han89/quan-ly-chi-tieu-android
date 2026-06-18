@@ -88,4 +88,40 @@ public class TransactionController {
                 })
                 .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
     }
+
+    //Lấy tất cả giao dịch của user
+    public void getAllTransactions(TransactionListCallback callback) {
+        if (mAuth.getCurrentUser() == null) {
+            callback.onFailure("Người dùng chưa đăng nhập!");
+            return;
+        }
+
+        String uid = mAuth.getCurrentUser().getUid();
+        db.collection("transactions")
+                .whereEqualTo("userId", uid)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+
+                    List<Transaction> list = new ArrayList<>();
+                    double totalIncome = 0;
+                    double totalExpense = 0;
+
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        Transaction tx = doc.toObject(Transaction.class);
+
+                        if (tx == null) continue;
+                        list.add(tx);
+
+                        if ("INCOME".equals(tx.getType())) {
+                            totalIncome += tx.getAmount();
+                        } else if ("EXPENSE".equals(tx.getType())) {
+                            totalExpense += tx.getAmount();
+                        }
+                    }
+
+                    callback.onLoaded(list, totalIncome, totalExpense);
+                })
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage())
+                );
+    }
 }
