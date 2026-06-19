@@ -69,6 +69,12 @@
         <activity android:name=".view.ReportHistoryActivity" />
         <activity android:name=".view.CsvViewerActivity" />
 
+        <activity android:name=".view.SavingGoalActivity"
+            android:exported="false"/>
+
+        <activity android:name=".view.AddSavingGoalActivity"
+            android:exported="false"/>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

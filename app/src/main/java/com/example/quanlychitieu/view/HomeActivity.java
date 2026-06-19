@@ -17,6 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -46,6 +47,26 @@ public class HomeActivity extends AppCompatActivity {
         txtTotalIncome = findViewById(R.id.txtTotalIncome);
         txtHomeUserName = findViewById(R.id.txtHomeUserName);
         btnReport = findViewById(R.id.btnReport);
+
+        BottomNavigationView bottomNavigation = findViewById(R.id.bottomNavigation);
+        bottomNavigation.setOnItemSelectedListener(item -> {
+
+            if (item.getItemId() == R.id.nav_history) {
+                startActivity(new Intent(HomeActivity.this, HistoryActivity.class));
+                return true;
+            }
+
+            if (item.getItemId() == R.id.nav_goal) {
+                startActivity(new Intent(HomeActivity.this, SavingGoalActivity.class));
+                return true;
+            }
+
+            if (item.getItemId() == R.id.nav_profile) {
+                startActivity(new Intent(HomeActivity.this, ProfileActivity.class));
+                return true;
+            }
+            return true;
+        });
 
         btnProfile.setOnClickListener(v -> {
             Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
