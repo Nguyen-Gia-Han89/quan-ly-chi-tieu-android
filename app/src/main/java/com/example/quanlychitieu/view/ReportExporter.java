@@ -29,8 +29,11 @@ public class ReportExporter {
             try {
 
                 // tạo tên file theo thời gian
-                String timeStamp = new SimpleDateFormat("MM_yyyy_HH_mm_ss", Locale.getDefault())
-                        .format(new Date());
+                String timeStamp =
+                        new SimpleDateFormat(
+                                "dd_MM_yyyy_HH_mm_ss",
+                                Locale.getDefault())
+                                .format(new Date());
 
                 String fileName = "report_" + timeStamp + ".csv";
 
