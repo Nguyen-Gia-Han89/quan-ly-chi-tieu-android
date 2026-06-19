@@ -4,6 +4,7 @@ import com.example.quanlychitieu.model.Transaction;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Source;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,7 +64,7 @@ public class TransactionController {
         // Lấy tất cả giao dịch của User này (không giới hạn riêng EXPENSE)
         db.collection("transactions")
                 .whereEqualTo("userId", uid)
-                .get()
+                .get(Source.SERVER)
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<Transaction> filteredList = new ArrayList<>();
                     double totalIncome = 0;
@@ -71,17 +72,22 @@ public class TransactionController {
 
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
                         Transaction tx = doc.toObject(Transaction.class);
-                        // Lọc những giao dịch kết thúc bằng chuỗi ngày "MM/yyyy" (Ví dụ: "08/06/2026" kết thúc bằng "06/2026")
-                        if (tx != null && tx.getDate() != null && tx.getDate().endsWith(monthYear)) {
-                            filteredList.add(tx);
 
-                            // Phân loại tính tổng tiền
-                            if ("INCOME".equals(tx.getType())) {
-                                totalIncome += tx.getAmount();
-                            } else if ("EXPENSE".equals(tx.getType())) {
-                                totalExpense += tx.getAmount();
-                            }
+                        if (tx == null || tx.getDate() == null) continue;
+                        String[] parts = tx.getDate().split("/");
+                        if (parts.length != 3) continue;
+                        String txMonthYear = parts[1] + "/" + parts[2];
+
+                        if (!txMonthYear.equals(monthYear)) continue;
+                        filteredList.add(tx);
+                        String type = tx.getType();
+
+                        if ("INCOME".equalsIgnoreCase(type)) {
+                            totalIncome += tx.getAmount();
+                        } else if ("EXPENSE".equalsIgnoreCase(type)) {
+                            totalExpense += tx.getAmount();
                         }
+
                     }
                     // Trả kết quả chuẩn về cho Activity hiển thị lên View
                     callback.onLoaded(filteredList, totalIncome, totalExpense);
