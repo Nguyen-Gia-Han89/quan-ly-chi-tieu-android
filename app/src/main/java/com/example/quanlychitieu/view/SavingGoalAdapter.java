@@ -1,5 +1,7 @@
 package com.example.quanlychitieu.view;
 
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,10 +24,17 @@ public class SavingGoalAdapter extends RecyclerView.Adapter<SavingGoalAdapter.Vi
     private List<SavingGoal> list = new ArrayList<>();
     private double totalExpense = 0;
     private Map<String, Double> spentMap = new HashMap<>();
+    private Context context;
+    private String monthKey;
     public SavingGoalAdapter(List<SavingGoal> list) {
         if (list != null) this.list = list;
     }
 
+    public void setMonthKey(String monthKey) {
+        if (monthKey != null && !monthKey.isEmpty()) {
+            this.monthKey = monthKey;
+        }
+    }
     public void setTotalExpense(double totalExpense) {
         this.totalExpense = totalExpense;
         notifyDataSetChanged();
@@ -58,6 +67,7 @@ public class SavingGoalAdapter extends RecyclerView.Adapter<SavingGoalAdapter.Vi
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        context = parent.getContext();
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_saving_goal, parent, false);
         return new ViewHolder(view);
@@ -102,6 +112,20 @@ public class SavingGoalAdapter extends RecyclerView.Adapter<SavingGoalAdapter.Vi
             holder.progressBar.getProgressDrawable()
                     .setTint(Color.BLUE);
         }
+
+        //sự kiện click vào dấu ">" hoặc cả item để chuyển sang màn hình sửa
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, EditSavingGoalActivity.class);
+
+            // Truyền các thông tin cần thiết của mục tiêu hiện tại sang màn hình sửa
+            intent.putExtra("GOAL_ID", goal.getId());
+            intent.putExtra("CATEGORY_NAME", goal.getCategoryName());
+            intent.putExtra("TARGET_AMOUNT", goal.getTargetAmount());
+            intent.putExtra("COLOR", goal.getColor());
+            intent.putExtra("MONTH_KEY", this.monthKey);
+
+            context.startActivity(intent);
+        });
     }
 
     @Override

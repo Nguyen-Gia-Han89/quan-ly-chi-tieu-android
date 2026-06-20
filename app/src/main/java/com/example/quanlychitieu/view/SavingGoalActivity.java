@@ -3,7 +3,9 @@ package com.example.quanlychitieu.view;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -15,6 +17,9 @@ import com.example.quanlychitieu.controller.SavingGoalController;
 import com.example.quanlychitieu.controller.TransactionController;
 import com.example.quanlychitieu.model.SavingGoal;
 import com.example.quanlychitieu.model.Transaction;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.text.NumberFormat;
 import java.util.*;
 
@@ -29,11 +34,16 @@ public class SavingGoalActivity extends AppCompatActivity {
     private TransactionController transactionController;
     private Calendar selectedMonth;
     private double totalTargetValue = 0;
+    private ImageView btnEditTotalGoal;
+    private FirebaseFirestore db;
+    private FirebaseAuth auth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_saving_goal);
+        db = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance();
 
         initViews();
 
@@ -64,6 +74,18 @@ public class SavingGoalActivity extends AppCompatActivity {
             intent.putExtra("monthKey", getMonthKey());
             startActivity(intent);
         });
+
+        // Tạo một hàm xử lý chung khi muốn sửa Tổng mục tiêu
+        View.OnClickListener openEditTotalGoal = v -> {
+            Intent intent = new Intent(this, EditSavingGoalActivity.class);
+            intent.putExtra("IS_TOTAL", true);
+            intent.putExtra("MONTH_KEY", getMonthKey());
+            intent.putExtra("TARGET_AMOUNT", totalTargetValue);
+            startActivity(intent);
+        };
+
+        btnEditTotalGoal.setOnClickListener(openEditTotalGoal);
+        progressTotal.setOnClickListener(openEditTotalGoal);
         loadGoals();
     }
 
@@ -80,6 +102,7 @@ public class SavingGoalActivity extends AppCompatActivity {
 
         btnPrevMonth = findViewById(R.id.btnPrevMonth);
         btnNextMonth = findViewById(R.id.btnNextMonth);
+        btnEditTotalGoal = findViewById(R.id.btnEditTotalGoal);
 
         progressTotal.getProgressDrawable().setTint(Color.parseColor("#5E17EB"));
     }
@@ -89,65 +112,90 @@ public class SavingGoalActivity extends AppCompatActivity {
         String monthKey = getMonthKey();
         String monthYear = monthKey.replace("_", "/");
 
-        controller.getSavingGoals(monthKey, new SavingGoalController.SavingGoalCallback() {
-            @Override
-            public void onLoaded(List<SavingGoal> goals) {
-                if (goals == null) goals = new ArrayList<>();
+        if (auth.getCurrentUser() == null) return;
+        String uid = auth.getCurrentUser().getUid();
 
-                adapter.updateData(goals);
+        db.collection("users")
+                .document(uid)
+                .collection("saving_goals")
+                .document(monthKey)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
 
-                totalTargetValue = 0;
-                for (SavingGoal g : goals) {
-                    totalTargetValue += g.getTargetAmount();
-                }
+                    final double[] customTotalBudget = {-1};
+                    if (documentSnapshot.exists() && documentSnapshot.contains("totalBudget")) {
+                        customTotalBudget[0] = documentSnapshot.getDouble("totalBudget");
+                    }
+                    controller.getSavingGoals(monthKey, new SavingGoalController.SavingGoalCallback() {
+                        @Override
+                        public void onLoaded(List<SavingGoal> goals) {
+                            if (goals == null) goals = new ArrayList<>();
 
-                final List<SavingGoal> finalGoals = goals;
+                            adapter.setMonthKey(monthKey);
+                            adapter.updateData(goals);
 
-                transactionController.getTransactionsByMonth(monthYear,
-                        new TransactionController.TransactionListCallback() {
-                            @Override
-                            public void onLoaded(List<Transaction> transactions, double totalIncome, double totalExpense) {
-                                Map<String, Double> spentMap = new HashMap<>();
-
-                                // Gom nhóm tổng chi tiêu thực tế theo từng danh mục
-                                for (Transaction t : transactions) {
-                                    if ("EXPENSE".equalsIgnoreCase(t.getType())) {
-                                        String key = normalize(t.getCategory());
-                                        double amount = t.getAmount();
-
-                                        double oldAmount = spentMap.containsKey(key) ? spentMap.get(key) : 0;
-                                        spentMap.put(key, oldAmount + amount);
-                                    }
-                                }
-
-                                // Gửi bản đồ chi tiêu thực tế đã nhóm xuống Adapter
-                                adapter.updateSpentMap(spentMap);
-
-                                // LOGIC TÍNH TỔNG CHI TIÊU THỰC TẾ TRÊN TOÀN BỘ MỤC TIÊU
-                                double totalTargetSpent = 0;
-                                for (SavingGoal g : finalGoals) {
-                                    String goalKey = normalize(g.getCategoryName());
-                                    if (spentMap.containsKey(goalKey)) {
-                                        totalTargetSpent += spentMap.get(goalKey);
-                                    }
-                                }
-
-                                // Cập nhật UI với tổng ngân sách và tổng chi tiêu thực tế của các mục tiêu
-                                updateUI(totalTargetValue, totalTargetSpent);
+                            double totalTargetChildrenSum = 0;
+                            for (SavingGoal g : goals) {
+                                totalTargetChildrenSum += g.getTargetAmount();
                             }
 
-                            @Override
-                            public void onFailure(String message) {
-                                Toast.makeText(SavingGoalActivity.this, message, Toast.LENGTH_SHORT).show();
+                            if (customTotalBudget[0] != -1) {
+                                totalTargetValue = customTotalBudget[0];
+                            } else {
+                                totalTargetValue = totalTargetChildrenSum;
                             }
-                        });
-            }
 
-            @Override
-            public void onFailure(String message) {
-                Toast.makeText(SavingGoalActivity.this, message, Toast.LENGTH_SHORT).show();
-            }
-        });
+                            final List<SavingGoal> finalGoals = goals;
+
+                            transactionController.getTransactionsByMonth(monthYear,
+                                    new TransactionController.TransactionListCallback() {
+                                        @Override
+                                        public void onLoaded(List<Transaction> transactions, double totalIncome, double totalExpense) {
+                                            Map<String, Double> spentMap = new HashMap<>();
+
+                                            // Gom nhóm tổng chi tiêu thực tế theo từng danh mục
+                                            for (Transaction t : transactions) {
+                                                if ("EXPENSE".equalsIgnoreCase(t.getType())) {
+                                                    String key = normalize(t.getCategory());
+                                                    double amount = t.getAmount();
+
+                                                    double oldAmount = spentMap.containsKey(key) ? spentMap.get(key) : 0;
+                                                    spentMap.put(key, oldAmount + amount);
+                                                }
+                                            }
+
+                                            // Gửi bản đồ chi tiêu thực tế đã nhóm xuống Adapter
+                                            adapter.updateSpentMap(spentMap);
+
+                                            // LOGIC TÍNH TỔNG CHI TIÊU THỰC TẾ TRÊN TOÀN BỘ MỤC TIÊU
+                                            double totalTargetSpent = 0;
+                                            for (SavingGoal g : finalGoals) {
+                                                String goalKey = normalize(g.getCategoryName());
+                                                if (spentMap.containsKey(goalKey)) {
+                                                    totalTargetSpent += spentMap.get(goalKey);
+                                                }
+                                            }
+
+                                            // Cập nhật UI với tổng ngân sách và tổng chi tiêu thực tế của các mục tiêu
+                                            updateUI(totalTargetValue, totalTargetSpent);
+                                        }
+
+                                        @Override
+                                        public void onFailure(String message) {
+                                            Toast.makeText(SavingGoalActivity.this, message, Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                        }
+
+                        @Override
+                        public void onFailure(String message) {
+                            Toast.makeText(SavingGoalActivity.this, message, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(SavingGoalActivity.this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void updateUI(double totalTarget, double totalSpent) {
