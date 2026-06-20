@@ -12,21 +12,16 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 public class ReportController {
-
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler handler = new Handler(Looper.getMainLooper());
-
     public interface Callback {
-        void onDone(double income,
-                    double expense,
-                    String trend,
-                    List<CategoryReport> categories);
+        void onDone(double income, double expense,
+                    String trend, List<CategoryReport> categories);
     }
 
     public static class CategoryReport {
         public String category;
         public double total;
-
         public CategoryReport(String category, double total) {
             this.category = category;
             this.total = total;
@@ -34,9 +29,7 @@ public class ReportController {
     }
 
     public void generate(List<Transaction> list, Callback callback) {
-
         executor.execute(() -> {
-
             double income = 0;
             double expense = 0;
 
@@ -46,7 +39,6 @@ public class ReportController {
                 for (Transaction t : list) {
 
                     if (t == null || t.getType() == null) continue;
-
                     double amount = t.getAmount();
 
                     if ("INCOME".equals(t.getType())) {
@@ -55,10 +47,7 @@ public class ReportController {
                         expense += amount;
                     }
 
-                    String category = (t.getCategory() == null)
-                            ? "Khác"
-                            : t.getCategory();
-
+                    String category = (t.getCategory() == null) ? "Khác" : t.getCategory();
                     map.put(category,
                             map.getOrDefault(category, 0.0) + amount);
                 }

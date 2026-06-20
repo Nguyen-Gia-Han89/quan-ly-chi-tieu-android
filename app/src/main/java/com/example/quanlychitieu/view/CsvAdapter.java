@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.graphics.Color;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -52,20 +53,46 @@ public class CsvAdapter extends RecyclerView.Adapter<CsvAdapter.ViewHolder> {
 
         String[] row = data.get(i);
 
-        h.date.setText(row.length > 0 ? row[0] : "");
-        h.type.setText(row.length > 1 ? row[1] : "");
+        // Date nằm ở cột 3
+        h.date.setText(row.length > 3 ? row[3] : "");
 
-        if (row.length > 2) {
+        // Type nằm ở cột 0
+        String type = row.length > 0 ? row[0] : "";
+
+        if ("INCOME".equalsIgnoreCase(type)) {
+
+            h.type.setText("Thu");
+            h.type.setTextColor(Color.parseColor("#2E7D32"));
+
+        } else if ("EXPENSE".equalsIgnoreCase(type)) {
+
+            h.type.setText("Chi");
+            h.type.setTextColor(Color.parseColor("#C62828"));
+
+        } else {
+
+            h.type.setText(type);
+            h.type.setTextColor(Color.BLACK);
+        }
+
+        // Amount nằm ở cột 1
+        if (row.length > 1) {
+
             try {
-                double money = Double.parseDouble(row[2]);
 
-                h.money.setText(moneyFormat.format(money) + " ₫");
+                double amount = Double.parseDouble(row[1]);
+
+                h.money.setText(
+                        moneyFormat.format(amount) + " ₫"
+                );
 
             } catch (Exception e) {
-                // nếu không phải số
-                h.money.setText(row[2]);
+
+                h.money.setText(row[1]);
             }
+
         } else {
+
             h.money.setText("");
         }
     }
