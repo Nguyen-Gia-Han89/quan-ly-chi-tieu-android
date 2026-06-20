@@ -46,6 +46,15 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:textStyle="bold"/>
+
+        <ImageView
+            android:id="@+id/btnEditGoal"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/outline_chevron_forward_24"
+            android:layout_gravity="center_vertical"
+            android:contentDescription="Edit Goal" />
+
     </LinearLayout>
 
     <LinearLayout

@@ -6,7 +6,9 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SavingGoalController {
     private FirebaseFirestore db;
@@ -99,5 +101,52 @@ public class SavingGoalController {
                     }
                 })
                 .addOnFailureListener(e -> callback.onFailure("Lỗi kiểm tra trùng: " + e.getMessage()));
+    }
+
+    // Hàm lấy ngân sách tổng đã đặt cho tháng
+    public void getTotalBudgetOfMonth(String monthKey, SavingGoalCallback callback) {
+        if (auth.getCurrentUser() == null) {
+            callback.onFailure("User chưa đăng nhập");
+            return;
+        }
+        String uid = auth.getCurrentUser().getUid();
+
+        db.collection("users")
+                .document(uid)
+                .collection("saving_goals")
+                .document(monthKey)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    List<SavingGoal> dummyList = new ArrayList<>();
+                    if (documentSnapshot.exists() && documentSnapshot.contains("totalBudget")) {
+                        double totalBudget = documentSnapshot.getDouble("totalBudget");
+                        // Tạo một object giả lập để truyền số tiền về qua callback sẵn có
+                        SavingGoal dummy = new SavingGoal();
+                        dummy.setTargetAmount(totalBudget);
+                        dummyList.add(dummy);
+                    }
+                    callback.onLoaded(dummyList);
+                })
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    // Hàm cập nhật ngân sách tổng cho tháng
+    public void updateTotalBudgetOfMonth(String monthKey, double amount, ActionCallback callback) {
+        if (auth.getCurrentUser() == null) {
+            callback.onFailure("User chưa đăng nhập");
+            return;
+        }
+        String uid = auth.getCurrentUser().getUid();
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("totalBudget", amount);
+
+        db.collection("users")
+                .document(uid)
+                .collection("saving_goals")
+                .document(monthKey)
+                .set(data, com.google.firebase.firestore.SetOptions.merge())
+                .addOnSuccessListener(aVoid -> callback.onSuccess())
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
     }
 }
