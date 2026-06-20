@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "com.example.quanlychitieu"
-    compileSdk = 36 // NÂNG LÊN 36 ĐỂ SỬA LỖI COMPILER
+    compileSdk = 35 // NÂNG LÊN 36 ĐỂ SỬA LỖI COMPILER
 
     defaultConfig {
         applicationId = "com.example.quanlychitieu"
         minSdk = 24
-        targetSdk = 36 // NÂNG LÊN 36 ĐỂ ĐỒNG BỘ
+        targetSdk = 34 // NÂNG LÊN 36 ĐỂ ĐỒNG BỘ
         versionCode = 1
         versionName = "1.0"
 
@@ -26,6 +26,13 @@ android {
             )
         }
     }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -52,6 +59,9 @@ dependencies {
 
     // Thư viện Nhận diện chữ viết OCR (Để quét Bill giấy)
     implementation("com.google.mlkit:text-recognition:16.0.0")
+
+    // Thư viện vẽ biểu đồ MPAndroidChart
+    implementation(libs.mpandroidchart)
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

@@ -171,6 +171,7 @@
                         app:cardBackgroundColor="#B462FF"
                         app:cardCornerRadius="20dp"
                         app:cardElevation="3dp">
+
                         <ImageView
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
@@ -225,7 +226,6 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- BÁO CÁO CHI TIÊU -->
                 <LinearLayout
                     android:id="@+id/btnReport"
                     android:layout_width="0dp"
