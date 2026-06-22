@@ -10,7 +10,7 @@ android {
     defaultConfig {
         applicationId = "com.example.quanlychitieu"
         minSdk = 24
-        targetSdk = 34 // NÂNG LÊN 36 ĐỂ ĐỒNG BỘ
+        targetSdk = 35 // NÂNG LÊN 36 ĐỂ ĐỒNG BỘ
         versionCode = 1
         versionName = "1.0"
 
@@ -44,6 +44,9 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.play.services.mlkit.text.recognition.common)
+    implementation(libs.material)
+    implementation(libs.firebase.database)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

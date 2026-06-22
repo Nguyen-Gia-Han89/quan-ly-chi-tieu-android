@@ -79,6 +79,13 @@
 
         <activity
             android:name=".view.CategoryDetailActivity"
+        <activity android:name=".view.SavingGoalActivity"
+            android:exported="false"/>
+
+        <activity android:name=".view.AddSavingGoalActivity"
+            android:exported="false"/>
+
+        <activity android:name=".view.EditSavingGoalActivity"
             android:exported="false" />
 
         <provider
