@@ -26,6 +26,13 @@ android {
             )
         }
     }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -55,6 +62,9 @@ dependencies {
 
     // Thư viện Nhận diện chữ viết OCR (Để quét Bill giấy)
     implementation("com.google.mlkit:text-recognition:16.0.0")
+
+    // Thư viện vẽ biểu đồ MPAndroidChart
+    implementation(libs.mpandroidchart)
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

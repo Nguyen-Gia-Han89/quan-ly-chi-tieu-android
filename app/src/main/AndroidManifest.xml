@@ -63,12 +63,22 @@
             android:name=".view.TransactionActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".view.MonthlyStatsActivity"
+            android:exported="false" />
+
         <activity android:name=".view.HistoryActivity" />
 
         <activity android:name=".view.ReportActivity" />
         <activity android:name=".view.ReportHistoryActivity" />
         <activity android:name=".view.CsvViewerActivity" />
 
+        <activity
+            android:name=".view.StatsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".view.CategoryDetailActivity"
         <activity android:name=".view.SavingGoalActivity"
             android:exported="false"/>
 

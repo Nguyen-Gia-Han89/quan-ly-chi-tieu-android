@@ -27,7 +27,6 @@ public class HomeActivity extends AppCompatActivity {
     private TextView txtTotalIncome;
     private TextView txtHomeUserName;
 
-    // Đã dọn dẹp xung đột Git và giữ lại biến Controller hợp lệ
     private TransactionController transactionController;
 
     private LinearLayout btnReport;
@@ -79,7 +78,8 @@ public class HomeActivity extends AppCompatActivity {
         });
 
         btnStats.setOnClickListener(v -> {
-            Toast.makeText(this, "Mở Thống kê chi tiêu", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(HomeActivity.this, StatsActivity.class);
+            startActivity(intent);
         });
 
         btnReport.setOnClickListener(v -> {
@@ -126,11 +126,9 @@ public class HomeActivity extends AppCompatActivity {
                 String formattedIncome = decimalFormat.format(totalIncome);
                 txtTotalIncome.setText(formattedIncome + " VNĐ");
 
-                // Ở màn hình Home, hiển thị tổng số tiền đã CHI TIÊU (totalExpense)
                 String formattedPrice = decimalFormat.format(totalExpense);
                 txtTotalSpent.setText(formattedPrice + " VNĐ");
 
-                // LOGIC KIỂM TRA HẠN MỨC CHI TIÊU
                 if (limit > 0 && totalExpense > limit) {
                     txtTotalSpent.setTextColor(Color.RED);
                     Toast.makeText(HomeActivity.this, "Cảnh báo: Chi tiêu vượt quá ngân sách cài đặt!", Toast.LENGTH_LONG).show();
