@@ -23,12 +23,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import android.widget.ImageButton;
 
 public class ReportHistoryActivity extends AppCompatActivity {
     private ListView listView;
     private ImageView btnBack;
     private TextView txtTotalReports, txtLatestReport;
-    private Button btnSort;
+    private ImageButton btnSort;
     private Button btnDelete;
     private TextView btnSelectMonth;
     private List<String> fileList = new ArrayList<>();
@@ -43,6 +44,28 @@ public class ReportHistoryActivity extends AppCompatActivity {
 
         initViews();
         setListeners();
+        btnSelectMonth.setOnClickListener(v -> {
+            android.widget.DatePicker dp = new android.widget.DatePicker(this);
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Chọn tháng")
+                    .setView(dp)
+                    .setPositiveButton("OK", (dialog, which) -> {
+
+                        int month = dp.getMonth() + 1;
+                        int year = dp.getYear();
+
+                        btnSelectMonth.setText(
+                                String.format(
+                                        Locale.getDefault(),
+                                        "Tháng %02d/%d ▾", month, year));
+
+                        filterByMonth(month, year);
+                    })
+                    .setNegativeButton("Huỷ", null)
+                    .show();
+        });
+
         loadFiles();
     }
 
@@ -63,7 +86,6 @@ public class ReportHistoryActivity extends AppCompatActivity {
 
             popup.getMenu().add("Gần nhất");
             popup.getMenu().add("Xa nhất");
-            popup.getMenu().add("Tất cả");
             popup.setOnMenuItemClickListener(item -> {
                 switch (item.getTitle().toString()) {
                     case "Gần nhất":
@@ -71,9 +93,6 @@ public class ReportHistoryActivity extends AppCompatActivity {
                         break;
                     case "Xa nhất":
                         sortOldestFirst();
-                        break;
-                    case "Tất cả":
-                        resetFilter();
                         break;
                 }
                 bindList();
@@ -295,5 +314,36 @@ public class ReportHistoryActivity extends AppCompatActivity {
 
             return v;
         }
+    }
+
+    private void filterByMonth(int month, int year) {
+        fileList.clear();
+
+        for (String file : allFiles) {
+
+            Date date = extractDate(file);
+
+            java.util.Calendar cal = java.util.Calendar.getInstance();
+            cal.setTime(date);
+
+            int fileMonth = cal.get(java.util.Calendar.MONTH) + 1;
+            int fileYear = cal.get(java.util.Calendar.YEAR);
+
+            if (fileMonth == month && fileYear == year) {
+                fileList.add(file);
+            }
+        }
+
+        sortNewestFirst();
+
+        txtTotalReports.setText(String.valueOf(fileList.size()));
+
+        if (fileList.isEmpty()) {
+            txtLatestReport.setText("Không có");
+        } else {
+            showLatestReport();
+        }
+
+        bindList();
     }
 }
