@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 public class ReportController {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler handler = new Handler(Looper.getMainLooper());
+
     public interface Callback {
         void onDone(double income, double expense,
                     String trend, List<CategoryReport> categories);
@@ -59,9 +60,6 @@ public class ReportController {
                     String compositeKey = category + "_" + type;
 
                     map.put(compositeKey, map.getOrDefault(compositeKey, 0.0) + amount);
-//                     String category = (t.getCategory() == null) ? "Khác" : t.getCategory();
-//                       map.put(category,
-//                               map.getOrDefault(category, 0.0) + amount);
                 }
             }
 

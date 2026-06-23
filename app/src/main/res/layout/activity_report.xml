@@ -77,7 +77,8 @@
                 android:layout_height="wrap_content"
                 android:text="Tổng thu"
                 android:textColor="#777777"
-                android:textSize="12sp"/>
+                android:textSize="12sp"
+                android:textStyle="bold"/>
 
             <TextView
                 android:id="@+id/txtReportIncome"
@@ -106,7 +107,8 @@
                 android:layout_height="wrap_content"
                 android:text="Tổng chi"
                 android:textColor="#777777"
-                android:textSize="12sp"/>
+                android:textSize="12sp"
+                android:textStyle="bold"/>
 
             <TextView
                 android:id="@+id/txtReportExpense"

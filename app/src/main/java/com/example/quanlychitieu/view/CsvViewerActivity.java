@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CsvViewerActivity extends AppCompatActivity {
-
     private RecyclerView rv;
     private ImageView btnBack;
 
@@ -30,7 +29,6 @@ public class CsvViewerActivity extends AppCompatActivity {
         rv.setLayoutManager(new LinearLayoutManager(this));
 
         btnBack = findViewById(R.id.btnBackCsv);
-
         btnBack.setOnClickListener(v -> finish());
 
         String path = getIntent().getStringExtra("file_path");
@@ -43,7 +41,6 @@ public class CsvViewerActivity extends AppCompatActivity {
     }
 
     private void loadCsv(String path) {
-
         List<String[]> list = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(new File(path)))) {

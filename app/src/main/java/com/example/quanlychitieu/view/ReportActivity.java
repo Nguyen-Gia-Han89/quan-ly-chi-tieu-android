@@ -52,7 +52,6 @@ public class ReportActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-
         txtIncome = findViewById(R.id.txtReportIncome);
         txtExpense = findViewById(R.id.txtReportExpense);
         txtTrend = findViewById(R.id.txtTrend);
@@ -111,7 +110,9 @@ public class ReportActivity extends AppCompatActivity {
                     public void onLoaded(List<Transaction> transactions,
                                          double income, double expense) {
 
-                        reportController.generate(transactions, (inc, exp, trend, list) -> {
+                        reportController.generate(transactions, (inc, exp,
+                                                                 trend,
+                                                                 list) -> {
 
                             txtIncome.setText("Tổng thu: " + formatMoney(inc));
                             txtExpense.setText("Tổng chi: " + formatMoney(exp));
@@ -157,8 +158,7 @@ public class ReportActivity extends AppCompatActivity {
                 },
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-        );
+                calendar.get(Calendar.DAY_OF_MONTH));
 
         dialog.show();
     }
@@ -197,8 +197,8 @@ public class ReportActivity extends AppCompatActivity {
 
                         currentList = transactions;
                         reportController.generate(transactions,
-                                (income, expense, trend, list) -> {
-
+                                (income, expense, trend,
+                                 list) -> {
                                     updateUI(income, expense, trend, list);
                                 });
                     }
@@ -262,7 +262,7 @@ public class ReportActivity extends AppCompatActivity {
                 txtTrend.setTextColor(Color.parseColor("#C62828")); // đỏ
             }
             else {
-                txtTrend.setTextColor(Color.parseColor("#444444")); // mặc định
+                txtTrend.setTextColor(Color.parseColor("#F9A825")); // vàng
             }
         }
 
