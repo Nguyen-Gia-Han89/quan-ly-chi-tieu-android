@@ -78,7 +78,7 @@
             android:exported="false" />
 
         <activity
-            android:name=".view.CategoryDetailActivity"
+            android:name=".view.CategoryDetailActivity"/>
         <activity android:name=".view.SavingGoalActivity"
             android:exported="false"/>
 

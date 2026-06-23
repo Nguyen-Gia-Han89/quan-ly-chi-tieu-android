@@ -34,9 +34,7 @@ public class ReportHistoryActivity extends AppCompatActivity {
     private List<String> fileList = new ArrayList<>();
     private List<String> allFiles = new ArrayList<>();
     private List<String> selectedFiles = new ArrayList<>();
-    private boolean newestFirst = true;
     private boolean isDeleteMode = false;
-    private String selectedMonth = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +47,6 @@ public class ReportHistoryActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-
         listView = findViewById(R.id.listViewReports);
         btnBack = findViewById(R.id.btnBackReportHistory);
         txtTotalReports = findViewById(R.id.txtTotalReports);
@@ -290,14 +287,10 @@ public class ReportHistoryActivity extends AppCompatActivity {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-
             View v = super.getView(position, convertView, parent);
-
             String file = fileList.get(position);
-
             TextView text = v.findViewById(android.R.id.text1);
             text.setText(file);
-
             listView.setItemChecked(position, selectedFiles.contains(file));
 
             return v;

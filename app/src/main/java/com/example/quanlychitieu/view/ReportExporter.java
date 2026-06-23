@@ -22,7 +22,6 @@ import java.util.concurrent.Executors;
 public class ReportExporter {
 
     public static void exportToCSV(Context context, List<Transaction> list) {
-
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
         executor.execute(() -> {
@@ -52,11 +51,20 @@ public class ReportExporter {
 
                 if (list != null) {
                     for (Transaction t : list) {
+                        String note = t.getNote();
+
+                        if (note == null) {
+                            note = "";
+                        }
+
+                        note = note.replace(",", ";");
+
                         writer.append(String.valueOf(t.getType())).append(",")
                                 .append(String.valueOf(t.getAmount())).append(",")
                                 .append(String.valueOf(t.getCategory())).append(",")
                                 .append(String.valueOf(t.getDate())).append(",")
-                                .append(String.valueOf(t.getNote())).append("\n");
+                                .append(note)
+                                .append("\n");
                     }
                 }
 
@@ -66,8 +74,7 @@ public class ReportExporter {
                 // lưu lịch sử file đã export
                 SharedPreferences pref = context.getSharedPreferences(
                         "REPORT_HISTORY",
-                        Context.MODE_PRIVATE
-                );
+                        Context.MODE_PRIVATE);
 
                 Set<String> files = pref.getStringSet("files", new HashSet<>());
 
@@ -84,8 +91,7 @@ public class ReportExporter {
                         Toast.makeText(
                                 context,
                                 "Xuất báo cáo thành công\n" + file.getAbsolutePath(),
-                                Toast.LENGTH_LONG
-                        ).show());
+                                Toast.LENGTH_LONG).show());
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -94,8 +100,7 @@ public class ReportExporter {
                         Toast.makeText(
                                 context,
                                 "Xuất báo cáo thất bại!",
-                                Toast.LENGTH_SHORT
-                        ).show());
+                                Toast.LENGTH_SHORT).show());
             }
         });
     }

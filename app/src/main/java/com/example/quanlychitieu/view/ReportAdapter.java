@@ -4,7 +4,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
+import android.graphics.Color;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -16,24 +16,20 @@ import java.util.List;
 import java.util.Locale;
 
 public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder> {
-
     private final List<ReportController.CategoryReport> list;
-    private final NumberFormat format =
-            NumberFormat.getInstance(new Locale("vi", "VN"));
 
     public ReportAdapter(List<ReportController.CategoryReport> list) {
         this.list = list;
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-
         TextView txtCategory;
         TextView txtTotal;
 
-        public ViewHolder(View view) {
-            super(view);
-            txtCategory = view.findViewById(android.R.id.text1);
-            txtTotal = view.findViewById(android.R.id.text2);
+        public ViewHolder(View itemView) {
+            super(itemView);
+            txtCategory = itemView.findViewById(R.id.txtCategory);
+            txtTotal = itemView.findViewById(R.id.txtTotal);
         }
     }
 
@@ -41,10 +37,10 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
-        View v = LayoutInflater.from(parent.getContext())
-                .inflate(android.R.layout.simple_list_item_2, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_report, parent, false);
 
-        return new ViewHolder(v);
+        return new ViewHolder(view);
     }
 
     @Override
@@ -52,12 +48,23 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
 
         ReportController.CategoryReport item = list.get(position);
 
-        // Tên danh mục
         holder.txtCategory.setText(item.category);
 
-        // Số tiền
-        holder.txtTotal.setText(
-                format.format(item.total) + " ₫");
+        NumberFormat format =
+                NumberFormat.getInstance(new Locale("vi", "VN"));
+
+        String money = format.format(item.total) + " ₫";
+
+        if ("INCOME".equals(item.type)) {
+
+            holder.txtTotal.setText("+" + money);
+            holder.txtTotal.setTextColor(Color.parseColor("#2E7D32")); // xanh
+
+        } else {
+
+            holder.txtTotal.setText("-" + money);
+            holder.txtTotal.setTextColor(Color.parseColor("#C62828")); // đỏ
+        }
     }
 
     @Override
