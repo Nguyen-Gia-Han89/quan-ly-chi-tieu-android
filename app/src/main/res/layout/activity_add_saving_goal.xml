@@ -32,10 +32,11 @@
             android:text="Thêm mục tiêu"
             android:textColor="#5E17EB"
             android:gravity="center"
-            android:textSize="20sp"
+            android:textSize="22sp"
             android:textStyle="bold"
             android:layout_marginTop="10dp"
-            android:layout_marginBottom="20dp"/>
+            android:layout_marginBottom="20dp"
+            android:fontFamily="@font/madimione"/>
 
         </RelativeLayout>
 
