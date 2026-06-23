@@ -26,9 +26,12 @@ import com.example.quanlychitieu.R;
 import com.example.quanlychitieu.controller.CategoryController;
 import com.example.quanlychitieu.controller.TransactionController;
 import com.example.quanlychitieu.model.Category;
+import com.example.quanlychitieu.model.Notification;
 import com.example.quanlychitieu.model.Transaction;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.mlkit.vision.common.InputImage;
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -391,6 +394,10 @@ public class TransactionActivity extends AppCompatActivity {
                 @Override
                 public void onSuccess() {
                     Toast.makeText(TransactionActivity.this, "Thêm giao dịch thành công!", Toast.LENGTH_SHORT).show();
+                    String[] parts = date.split("/");
+                    String mKey = parts[1] + "_" + parts[2];
+                    String mYear = parts[1] + "/" + parts[2];
+                    checkBudgetAndNotify(mKey, mYear, category, date);
                     finish();
                 }
                 @Override
@@ -660,5 +667,64 @@ public class TransactionActivity extends AppCompatActivity {
                 ).show();
             }
         }
+    }
+
+    private void saveNotificationToFirestore(String title, String message, String fullDate) {
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        String id = db.collection("users").document(uid).collection("notifications").document().getId();
+        Notification notify = new Notification(id, title, message, false, fullDate, System.currentTimeMillis());
+        db.collection("users").document(uid).collection("notifications").document(id).set(notify);
+    }
+
+    private void checkBudgetAndNotify(String monthKey, String monthYear, String currentCategory, String fullDate) {
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String normalizedCat = currentCategory.trim().toLowerCase();
+
+        // kiểm tra tổng ngân sách để thông báo nếu vượt mức mục tiêu
+        db.collection("users").document(uid).collection("saving_goals").document(monthKey).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists() && doc.contains("totalBudget")) {
+                        double totalTarget = doc.getDouble("totalBudget");
+                        transactionController.getTransactionsByMonth(monthYear, new TransactionController.TransactionListCallback() {
+                            @Override
+                            public void onLoaded(List<Transaction> transactions, double income, double expense) {
+                                int percent = (int) ((expense * 100) / totalTarget);
+                                if (percent >= 100) {
+                                    saveNotificationToFirestore("Vượt hạn mức tổng", "Tháng này bạn đã tiêu " + percent + "% ngân sách.", fullDate);
+                                } else if (percent >= 85) {
+                                    saveNotificationToFirestore("Sắp hết ngân sách tổng", "Bạn đã chi " + percent + "% tổng ngân sách tháng.", fullDate);
+                                }
+                            }
+                            @Override public void onFailure(String e) {}
+                        });
+                    }
+
+                    // Kiểm tra hạn mức từng danh mục trong trang mục tiêu
+                    db.collection("users").document(uid).collection("saving_goals").document(monthKey).collection("goals").get()
+                            .addOnSuccessListener(query -> {
+                                for (DocumentSnapshot d : query.getDocuments()) {
+                                    String catName = d.getString("categoryName");
+                                    if (catName != null && catName.trim().toLowerCase().equals(normalizedCat)) {
+                                        double catTarget = d.getDouble("targetAmount");
+                                        transactionController.getTransactionsByMonth(monthYear, new TransactionController.TransactionListCallback() {
+                                            @Override
+                                            public void onLoaded(List<Transaction> transactions, double inc, double exp) {
+                                                double catExp = 0;
+                                                for (Transaction t : transactions) {
+                                                    if ("EXPENSE".equals(t.getType()) && t.getCategory().trim().toLowerCase().equals(normalizedCat)) catExp += t.getAmount();
+                                                }
+                                                int p = (int) ((catExp * 100) / catTarget);
+                                                if (p >= 100) saveNotificationToFirestore("Hết ngân sách của [" + currentCategory + "]", "Danh mục này đã tiêu quá " + p + "%.", fullDate);
+                                                else if (p >= 85) saveNotificationToFirestore("Cảnh báo [" + currentCategory + "]", "Danh mục chạm ngưỡng " + p + "%.", fullDate);
+                                            }
+                                            @Override public void onFailure(String e) {}
+                                        });
+                                    }
+                                }
+                            });
+                });
     }
 }

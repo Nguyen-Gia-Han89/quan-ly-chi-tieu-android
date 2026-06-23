@@ -223,7 +223,7 @@ public class SavingGoalActivity extends AppCompatActivity {
     private String getCurrentMonthYear() {
         int m = selectedMonth.get(Calendar.MONTH) + 1;
         int y = selectedMonth.get(Calendar.YEAR);
-        tvTitle.setText("Tổng ngân sách tháng " + m + "/" + y);
+        tvTitle.setText("Ngân sách " + m + "/" + y);
         return "";
     }
 

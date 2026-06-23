@@ -17,7 +17,11 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -49,6 +53,9 @@ public class HomeActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNavigation = findViewById(R.id.bottomNavigation);
         bottomNavigation.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.nav_home) {
+                return true;
+            }
 
             if (item.getItemId() == R.id.nav_history) {
                 startActivity(new Intent(HomeActivity.this, HistoryActivity.class));
@@ -60,12 +67,20 @@ public class HomeActivity extends AppCompatActivity {
                 return true;
             }
 
+            if (item.getItemId() == R.id.nav_notification) {
+                bottomNavigation.removeBadge(R.id.nav_notification);
+                startActivity(new Intent(HomeActivity.this, NotificationActivity.class));
+                return true;
+            }
+
             if (item.getItemId() == R.id.nav_profile) {
                 startActivity(new Intent(HomeActivity.this, ProfileActivity.class));
                 return true;
             }
             return true;
         });
+
+        setupNotificationBadge(bottomNavigation);
 
         btnProfile.setOnClickListener(v -> {
             Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
@@ -98,6 +113,12 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        BottomNavigationView bottomNavigation = findViewById(R.id.bottomNavigation);
+        if (bottomNavigation != null) {
+            if (bottomNavigation.getSelectedItemId() != R.id.nav_home) {
+                bottomNavigation.setSelectedItemId(R.id.nav_home);
+            }
+        }
         checkBudgetLimit();
     }
 
@@ -145,5 +166,30 @@ public class HomeActivity extends AppCompatActivity {
                 Toast.makeText(HomeActivity.this, "Không thể tải dữ liệu: " + errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    //Đếm thông báo và hiển thị số thông báo mới
+    private void setupNotificationBadge(BottomNavigationView bottomNavigation) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+        String uid = user.getUid();
+
+        FirebaseFirestore.getInstance().collection("users").document(uid).collection("notifications")
+                .whereEqualTo("isRead", false).addSnapshotListener((value, error) -> {
+                    if (value != null) {
+                        int notificationCount = value.size();
+
+                        BadgeDrawable badge = bottomNavigation.getOrCreateBadge(R.id.nav_notification);
+
+                        if (notificationCount > 0) {
+                            badge.setVisible(true);
+                            badge.setNumber(notificationCount);
+                            badge.setBackgroundColor(Color.RED);
+                            badge.setBadgeTextColor(Color.WHITE);
+                        } else {
+                            bottomNavigation.removeBadge(R.id.nav_notification);
+                        }
+                    }
+                });
     }
 }
