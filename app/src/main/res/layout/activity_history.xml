@@ -4,126 +4,206 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#D1CFFF"
-    android:padding="16dp">
+    android:background="#D1CFFF">
 
-    <RelativeLayout
+
+    <!-- HEADER -->
+    <LinearLayout
         android:id="@+id/historyHeader"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:orientation="vertical"
+        android:padding="16dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <ImageView
-            android:id="@+id/btnBackHistory"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_centerVertical="true"
-            android:src="@android:drawable/ic_menu_revert"
-            app:tint="#5E17EB"
-            android:clickable="true"
-            android:focusable="true" />
-
-        <TextView
-            android:id="@+id/txtHistoryTitle"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/btnBackHistory"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="12dp"
-            android:text="Nhật Ký Giao Dịch"
-            android:textColor="#5E17EB"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/btnBackHistory"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@android:drawable/ic_menu_revert"
+                app:tint="#5E17EB"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nhật ký giao dịch"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#1F1F1F"
+                android:layout_marginStart="12dp"/>
+        </LinearLayout>
 
         <TextView
             android:id="@+id/btnSelectMonth"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:background="@android:color/white"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="6dp"
             android:text="Tháng 06/2026 ▾"
-            android:textColor="#5E17EB"
             android:textStyle="bold"
-            android:textSize="14sp" />
-    </RelativeLayout>
-
-    <LinearLayout
-        android:id="@+id/layoutHistorySummary"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:background="@android:color/white"
-        android:orientation="horizontal"
-        android:padding="12dp"
-        android:weightSum="2"
-        app:layout_constraintTop_toBottomOf="@id/historyHeader"
-        android:elevation="2dp">
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tổng thu"
-                android:textSize="12sp"
-                android:textColor="#777777"/>
-            <TextView
-                android:id="@+id/txtHistoryIncome"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="+0đ"
-                android:textColor="#2E7D32"
-                android:textStyle="bold"
-                android:textSize="15sp"/>
-        </LinearLayout>
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:background="#E0E0E0"/>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tổng chi"
-                android:textSize="12sp"
-                android:textColor="#777777"/>
-            <TextView
-                android:id="@+id/txtHistoryExpense"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="-0đ"
-                android:textColor="#C62828"
-                android:textStyle="bold"
-                android:textSize="15sp"/>
-        </LinearLayout>
+            android:textColor="#5E17EB"
+            android:padding="10dp"
+            android:layout_marginTop="12dp"
+            android:background="#FFFFFF"/>
     </LinearLayout>
 
+
+    <!-- FILTER PILL -->
+    <LinearLayout
+        android:id="@+id/filterContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:padding="4dp"
+        android:orientation="horizontal"
+        android:background="#EDEDF5"
+        app:layout_constraintTop_toBottomOf="@id/historyHeader"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+
+        <TextView
+            android:id="@+id/tabAll"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Tất cả"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/bg_tab_selected"/>
+
+        <TextView
+            android:id="@+id/tabIncome"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Thu"
+            android:textStyle="bold"
+            android:textColor="#666"/>
+
+        <TextView
+            android:id="@+id/tabExpense"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Chi"
+            android:textStyle="bold"
+            android:textColor="#666"/>
+    </LinearLayout>
+
+
+    <!-- SUMMARY -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardSummary"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        app:layout_constraintTop_toBottomOf="@id/filterContainer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <!-- BALANCE -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cân đối"
+                    android:textColor="#5E17EB"
+                    android:textSize="12sp"/>
+
+                <TextView
+                    android:id="@+id/txtBalance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 ₫"
+                    android:textStyle="bold"
+                    android:textColor="#5E17EB"/>
+            </LinearLayout>
+
+            <!-- INCOME -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Thu"
+                    android:textColor="#2E7D32"
+                    android:textSize="12sp"/>
+
+                <TextView
+                    android:id="@+id/txtIncomeTotal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 ₫"
+                    android:textStyle="bold"
+                    android:textColor="#2E7D32"/>
+            </LinearLayout>
+
+            <!-- EXPENSE -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Chi"
+                    android:textColor="#D32F2F"
+                    android:textSize="12sp"/>
+
+                <TextView
+                    android:id="@+id/txtExpenseTotal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 ₫"
+                    android:textStyle="bold"
+                    android:textColor="#D32F2F"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+
+    <!-- LIST -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvTransactions"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
-        android:scrollbars="vertical"
+        android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@id/cardSummary"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutHistorySummary"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

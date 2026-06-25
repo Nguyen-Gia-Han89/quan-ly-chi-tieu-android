@@ -2,32 +2,47 @@ package com.example.quanlychitieu.view;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.quanlychitieu.R;
 import com.example.quanlychitieu.controller.TransactionController;
 import com.example.quanlychitieu.model.Transaction;
+
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Locale;
 import java.util.List;
+import java.util.Locale;
 
 public class HistoryActivity extends AppCompatActivity {
 
+    // FILTER STATE
+    private String currentFilter = "ALL";
+    private String selectedMonthYear;
+
+    // UI
     private ImageView btnBackHistory;
-    private TextView btnSelectMonth, txtHistoryIncome, txtHistoryExpense;
+
+    private TextView btnSelectMonth;
+
+    private TextView tabAll, tabIncome, tabExpense;
+
+    private TextView txtIncomeTotal, txtExpenseTotal, txtBalance;
+
     private RecyclerView rvTransactions;
 
+    // DATA
     private TransactionController transactionController;
     private TransactionAdapter transactionAdapter;
-    private String selectedMonthYear;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,97 +51,204 @@ public class HistoryActivity extends AppCompatActivity {
 
         transactionController = new TransactionController();
 
-        // Ánh xạ View từ layout XML
+        // ====== INIT VIEW ======
         btnBackHistory = findViewById(R.id.btnBackHistory);
         btnSelectMonth = findViewById(R.id.btnSelectMonth);
-        txtHistoryIncome = findViewById(R.id.txtHistoryIncome);
-        txtHistoryExpense = findViewById(R.id.txtHistoryExpense);
+
+        tabAll = findViewById(R.id.tabAll);
+        tabIncome = findViewById(R.id.tabIncome);
+        tabExpense = findViewById(R.id.tabExpense);
+
+        txtIncomeTotal = findViewById(R.id.txtIncomeTotal);
+        txtExpenseTotal = findViewById(R.id.txtExpenseTotal);
+        txtBalance = findViewById(R.id.txtBalance);
+
         rvTransactions = findViewById(R.id.rvTransactions);
 
-        // Thiết lập RecyclerView hiển thị danh sách dạng Linear dọc
+        // ====== RECYCLER ======
         rvTransactions.setLayoutManager(new LinearLayoutManager(this));
 
-        // KHỞI TẠO ADAPTER: Đã sửa lại logic click item để xem chi tiết
         transactionAdapter = new TransactionAdapter(new ArrayList<>(), transaction -> {
             Intent intent = new Intent(HistoryActivity.this, TransactionActivity.class);
-
-            // 1. Chuyển sang chế độ xem chi tiết giao dịch (MODE_DETAIL = 2)
             intent.putExtra(TransactionActivity.KEY_MODE, TransactionActivity.MODE_DETAIL);
-
-            // 2. Truyền object giao dịch được click sang màn hình TransactionActivity để hiển thị dữ liệu lên form
             intent.putExtra(TransactionActivity.KEY_DATA, transaction);
-
             startActivity(intent);
         });
+
         rvTransactions.setAdapter(transactionAdapter);
 
-        // Lấy tháng năm hiện tại mặc định của máy để lọc khi vừa mở màn hình lên
+        // ====== DEFAULT MONTH ======
         SimpleDateFormat sdf = new SimpleDateFormat("MM/yyyy", Locale.getDefault());
         selectedMonthYear = sdf.format(Calendar.getInstance().getTime());
         btnSelectMonth.setText("Tháng " + selectedMonthYear + " ▾");
 
-        // Tải dữ liệu lần đầu
-        loadTransactionHistory();
-
-        // Sự kiện click nút Chọn tháng
-        btnSelectMonth.setOnClickListener(v -> showMonthYearPickerDialog());
-
-        // Nút quay lại màn hình chính Home
+        // ====== EVENTS ======
         btnBackHistory.setOnClickListener(v -> finish());
+
+        btnSelectMonth.setOnClickListener(v -> showMonthPicker());
+
+        setupTabClicks();
+
+        updateTabUI(tabAll);
+
+        loadTransactionHistory();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // Khi thêm/sửa/xóa từ màn hình TransactionActivity rồi quay về, danh sách tự động làm mới lại
         loadTransactionHistory();
     }
 
-    private void loadTransactionHistory() {
-        transactionController.getTransactionsByMonth(selectedMonthYear, new TransactionController.TransactionListCallback() {
-            @Override
-            public void onLoaded(List<Transaction> transactions, double totalIncome, double totalExpense) {
-                // 1. Cập nhật danh sách giao dịch nạp vào RecyclerView thông qua Adapter
-                transactionAdapter.updateList(transactions);
+    // ================= FILTER TABS =================
+    private void setupTabClicks() {
 
-                // 2. Định dạng chuỗi số hiển thị tiền tệ
-                DecimalFormat df = new DecimalFormat("#,###");
-                txtHistoryIncome.setText("+" + df.format(totalIncome) + "đ");
-                txtHistoryExpense.setText("-" + df.format(totalExpense) + "đ");
+        tabAll.setOnClickListener(v -> {
+            currentFilter = "ALL";
+            updateTabUI(tabAll);
+            loadTransactionHistory();
+        });
 
-                if (transactions.isEmpty()) {
-                    Toast.makeText(HistoryActivity.this, "Không có giao dịch nào trong tháng này", Toast.LENGTH_SHORT).show();
-                }
-            }
+        tabIncome.setOnClickListener(v -> {
+            currentFilter = "INCOME";
+            updateTabUI(tabIncome);
+            loadTransactionHistory();
+        });
 
-            @Override
-            public void onFailure(String errorMessage) {
-                Toast.makeText(HistoryActivity.this, "Lỗi tải lịch sử: " + errorMessage, Toast.LENGTH_SHORT).show();
-            }
+        tabExpense.setOnClickListener(v -> {
+            currentFilter = "EXPENSE";
+            updateTabUI(tabExpense);
+            loadTransactionHistory();
         });
     }
 
-    private void showMonthYearPickerDialog() {
-        Calendar calendar = Calendar.getInstance();
+    private void updateTabUI(TextView selected) {
 
-        DatePickerDialog datePickerDialog = new DatePickerDialog(this,
-                (view, year, month, dayOfMonth) -> {
-                    Calendar cal = Calendar.getInstance();
-                    cal.set(Calendar.YEAR, year);
-                    cal.set(Calendar.MONTH, month);
+        resetTab(tabAll);
+        resetTab(tabIncome);
+        resetTab(tabExpense);
 
-                    SimpleDateFormat sdf = new SimpleDateFormat("MM/yyyy", Locale.getDefault());
-                    selectedMonthYear = sdf.format(cal.getTime());
+        selected.setBackgroundResource(R.drawable.bg_tab_selected);
+        selected.setTextColor(Color.WHITE);
+    }
 
-                    btnSelectMonth.setText("Tháng " + selectedMonthYear + " ▾");
-                    loadTransactionHistory(); // Tải lại dữ liệu mới sau khi đổi tháng lọc
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-        );
+    private void resetTab(TextView tab) {
+        tab.setBackground(null);
+        tab.setTextColor(Color.GRAY);
+    }
 
-        datePickerDialog.setTitle("Chọn Tháng / Năm cần lọc");
-        datePickerDialog.show();
+    // ================= LOAD DATA =================
+    private void loadTransactionHistory() {
+
+        transactionController.getTransactionsByMonth(selectedMonthYear,
+                new TransactionController.TransactionListCallback() {
+
+                    @Override
+                    public void onLoaded(List<Transaction> transactions,
+                                         double totalIncome,
+                                         double totalExpense) {
+
+                        List<Transaction> filtered = new ArrayList<>();
+
+                        for (Transaction t : transactions) {
+
+                            String type = t.getType();
+
+                            if (currentFilter.equals("ALL")) {
+                                filtered.add(t);
+                            } else if (currentFilter.equals("INCOME")
+                                    && type.equalsIgnoreCase("income")) {
+                                filtered.add(t);
+                            } else if (currentFilter.equals("EXPENSE")
+                                    && type.equalsIgnoreCase("expense")) {
+                                filtered.add(t);
+                            }
+                        }
+
+                        transactionAdapter.updateList(filtered);
+
+                        updateSummary(totalIncome, totalExpense);
+
+                        if (filtered.isEmpty()) {
+                            Toast.makeText(HistoryActivity.this,
+                                    "Không có giao dịch",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(String errorMessage) {
+                        Toast.makeText(HistoryActivity.this,
+                                "Lỗi: " + errorMessage,
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    // ================= SUMMARY UI =================
+    private void updateSummary(double income, double expense) {
+
+        DecimalFormat df = new DecimalFormat("#,###");
+
+        txtIncomeTotal.setText(df.format(income) + " ₫");
+        txtExpenseTotal.setText(df.format(expense) + " ₫");
+
+        double balance = income - expense;
+        txtBalance.setText(df.format(balance) + " ₫");
+
+        // màu cân đối
+        if (balance < 0) {
+            txtBalance.setTextColor(Color.RED);
+        } else {
+            txtBalance.setTextColor(Color.parseColor("#5E17EB"));
+        }
+    }
+
+    // ================= MONTH PICKER =================
+    private void showMonthPicker() {
+
+        String[] months = {
+                "01", "02", "03", "04", "05", "06",
+                "07", "08", "09", "10", "11", "12"
+        };
+
+        String[] years = {"2024", "2025", "2026", "2027"};
+
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setTitle("Chọn tháng");
+
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
+        layout.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+
+        android.widget.NumberPicker monthPicker = new android.widget.NumberPicker(this);
+        monthPicker.setMinValue(0);
+        monthPicker.setMaxValue(months.length - 1);
+        monthPicker.setDisplayedValues(months);
+
+        android.widget.NumberPicker yearPicker = new android.widget.NumberPicker(this);
+        yearPicker.setMinValue(0);
+        yearPicker.setMaxValue(years.length - 1);
+        yearPicker.setDisplayedValues(years);
+
+        layout.addView(monthPicker);
+        layout.addView(yearPicker);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("OK", (dialog, which) -> {
+
+            String month = months[monthPicker.getValue()];
+            String year = years[yearPicker.getValue()];
+
+            selectedMonthYear = month + "/" + year;
+
+            btnSelectMonth.setText("Tháng " + selectedMonthYear + " ▾");
+
+            loadTransactionHistory();
+        });
+
+        builder.setNegativeButton("Hủy", null);
+
+        builder.show();
     }
 }

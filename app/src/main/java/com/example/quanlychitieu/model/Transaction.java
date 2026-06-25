@@ -1,9 +1,6 @@
 package com.example.quanlychitieu.model;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 public class Transaction implements Serializable {
     private String id;
@@ -49,13 +46,4 @@ public class Transaction implements Serializable {
 
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
-
-    public Date getDateAsDate() {
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-            return sdf.parse(date);
-        } catch (Exception e) {
-            return new Date(0);
-        }
-    }
 }
