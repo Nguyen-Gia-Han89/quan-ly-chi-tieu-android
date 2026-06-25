@@ -1,7 +1,14 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
 }
+
+val properties = Properties()
+
+properties.load(rootProject.file("local.properties").inputStream())
+
 
 android {
     namespace = "com.example.quanlychitieu"
@@ -15,6 +22,16 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField(
+            "String",
+            "GEMINI_API_KEY",
+            "\"${properties.getProperty("GEMINI_API_KEY", "")}\""
+        )
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -57,10 +74,12 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
 
-    // Thư viện Quét mã QR (Không cần xin quyền camera)
+    /// QR Scanner
     implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
 
-    // Thư viện Nhận diện chữ viết OCR (Để quét Bill giấy)
+    // OkHttp
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
     implementation("com.google.mlkit:text-recognition:16.0.0")
 
     // Thư viện vẽ biểu đồ MPAndroidChart

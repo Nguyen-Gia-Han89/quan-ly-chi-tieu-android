@@ -18,11 +18,13 @@ public class CategoryController {
         mAuth = FirebaseAuth.getInstance();
     }
 
+    // Giao diện lắng nghe xử lý danh sách danh mục trả về cho View
     public interface CategoryCallback {
         void onLoaded(List<Category> categories);
         void onFailure(String errorMessage);
     }
 
+    // Giao diện lắng nghe xử lý cho các hành động Thêm/Sửa/Xóa đơn lẻ
     public interface ActionCallback {
         void onSuccess();
         void onFailure(String errorMessage);
@@ -64,10 +66,12 @@ public class CategoryController {
                         }
                     }
 
+                    // TỰ ĐỘNG KHỞI TẠO NẾU FIREBASE CHƯA CÓ DANH MỤC MẶC ĐỊNH
                     if (!hasSystemCategories) {
                         initializeSystemCategoriesInFirebase(new ActionCallback() {
                             @Override
                             public void onSuccess() {
+                                // Sau khi nạp thành công lên Firebase, tiến hành tải lại toàn bộ dữ liệu lần nữa
                                 getAllCategories(callback);
                             }
 
@@ -88,7 +92,9 @@ public class CategoryController {
      */
     private void initializeSystemCategoriesInFirebase(ActionCallback callback) {
         WriteBatch batch = db.batch();
-        String[] defaultNames = {"Ăn uống", "Tiền lương", "Mua sắm", "Di chuyển", "Giải trí"};
+
+        // Danh sách các danh mục mặc định bạn muốn thiết lập cho hệ thống
+        String[] defaultNames = {"Đồ ăn", "Y tế", "Hóa đơn", "Thu nhập", "Mua sắm", "Di chuyển", "Giải trí", "Đồ uống", "Chưa phân loại", "Giáo dục"};
 
         for (String name : defaultNames) {
             String generatedId = db.collection("categories").document().getId();
@@ -189,5 +195,9 @@ public class CategoryController {
                 .delete()
                 .addOnSuccessListener(aVoid -> callback.onSuccess())
                 .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    public void addCategory(String categoryName, ActionCallback callback) {
+        addCustomCategory(categoryName, callback);
     }
 }
