@@ -42,7 +42,7 @@
             android:textColor="#5E17EB"
             android:layout_marginStart="10dp"
             app:layout_constraintStart_toEndOf="@id/btnBackReportHistory"
-            app:layout_constraintEnd_toStartOf="@id/btnSort"
+            app:layout_constraintEnd_toStartOf="@id/btnSelectMonth"
             app:layout_constraintTop_toTopOf="@id/btnBackReportHistory"/>
 
         <!-- SORT -->
@@ -54,9 +54,10 @@
             android:src="@drawable/ic_filter"
             android:tint="#5E17EB"
             android:contentDescription="Sắp xếp"
-            app:layout_constraintEnd_toStartOf="@id/btnSelectMonth"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginEnd="6dp"/>
+            android:layout_marginEnd="6dp"
+            app:layout_constraintEnd_toStartOf="@id/btnDelete"
+            app:layout_constraintTop_toTopOf="@id/btnDelete"
+            app:layout_constraintBottom_toBottomOf="@id/btnDelete"/>
 
         <!-- MONTH -->
         <TextView
@@ -80,7 +81,7 @@
             android:layout_height="32dp"
             android:text="Xoá"
             android:textSize="12sp"
-            android:backgroundTint="#D32F2F"
+            android:backgroundTint="#5E17EB"
             android:textColor="#FFFFFF"
             android:layout_marginTop="6dp"
             app:layout_constraintTop_toBottomOf="@id/btnSelectMonth"
