@@ -1,6 +1,7 @@
 package com.example.quanlychitieu.view;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -15,6 +16,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -39,14 +41,12 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-
         edtEmail = findViewById(R.id.edtLoginEmail);
         edtPassword = findViewById(R.id.edtLoginPassword);
         btnSubmitLogin = findViewById(R.id.btnSubmitLogin);
         txtError = findViewById(R.id.txtLoginError);
         txtForgotPassword = findViewById(R.id.txtForgotPassword);
         txtGoToRegister = findViewById(R.id.txtGoToRegister);
-
 
         btnSubmitLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -67,14 +67,44 @@ public class LoginActivity extends AppCompatActivity {
                                 if (task.isSuccessful()) {
                                     FirebaseUser user = mAuth.getCurrentUser();
 
-
                                     if (user != null && user.isEmailVerified()) {
                                         txtError.setVisibility(View.GONE);
-                                        Toast.makeText(LoginActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+                                        String uid = user.getUid();
 
-                                        Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                                        startActivity(intent);
-                                        finish();
+                                        // 🌟 BƯỚC ĐỒNG BỘ: Tải lại thông tin cá nhân cũ từ Firestore đám mây về thiết bị
+                                        FirebaseFirestore.getInstance().collection("users").document(uid).get()
+                                                .addOnSuccessListener(documentSnapshot -> {
+                                                    SharedPreferences pref = getSharedPreferences("MoneyMate", MODE_PRIVATE);
+                                                    SharedPreferences.Editor editor = pref.edit();
+
+                                                    if (documentSnapshot.exists()) {
+                                                        // Nạp lại thông tin định danh cũ
+                                                        editor.putString("user_name", documentSnapshot.getString("userName"));
+                                                        editor.putString("user_phone", documentSnapshot.getString("userPhone"));
+
+                                                        Boolean reminderOn = documentSnapshot.getBoolean("dailyReminderOn");
+                                                        Long hour = documentSnapshot.getLong("reminderHour");
+                                                        Long minute = documentSnapshot.getLong("reminderMinute");
+
+                                                        editor.putBoolean("daily_reminder_on", reminderOn != null ? reminderOn : false);
+                                                        editor.putInt("reminder_hour", hour != null ? hour.intValue() : 21);
+                                                        editor.putInt("reminder_minute", minute != null ? minute.intValue() : 0);
+                                                    }
+                                                    editor.apply();
+
+
+                                                    Toast.makeText(LoginActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+                                                    Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                                                    startActivity(intent);
+                                                    finish();
+                                                })
+                                                .addOnFailureListener(e -> {
+
+                                                    Toast.makeText(LoginActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+                                                    Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                                                    startActivity(intent);
+                                                    finish();
+                                                });
                                     } else {
                                         txtError.setText("Tài khoản chưa xác thực! Hãy kiểm tra Gmail của bạn.");
                                         txtError.setVisibility(View.VISIBLE);
@@ -88,7 +118,6 @@ public class LoginActivity extends AppCompatActivity {
                         });
             }
         });
-
 
         txtForgotPassword.setOnClickListener(v -> {
             String email = edtEmail.getText().toString().trim();
@@ -112,7 +141,6 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     });
         });
-
 
         if (txtGoToRegister != null) {
             txtGoToRegister.setOnClickListener(v -> {
