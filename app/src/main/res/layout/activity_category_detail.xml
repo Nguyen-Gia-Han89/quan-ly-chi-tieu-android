@@ -20,7 +20,7 @@
             android:layout_centerVertical="true"
             android:padding="4dp"
             android:src="@android:drawable/ic_menu_revert"
-            android:tint="#2C2C2C"
+            android:tint="#5E17EB"
             android:contentDescription="Quay lại" />
 
         <TextView
@@ -29,9 +29,10 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:text="Tên danh mục"
-            android:textColor="#2C2C2C"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textColor="#5E17EB"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/madimione" />
     </RelativeLayout>
 
     <LinearLayout

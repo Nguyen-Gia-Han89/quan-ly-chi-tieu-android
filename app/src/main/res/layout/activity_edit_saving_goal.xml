@@ -33,8 +33,9 @@
                 android:layout_centerInParent="true"
                 android:text="Sửa mục tiêu"
                 android:textColor="#5E17EB"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/madimione" />
         </RelativeLayout>
 
         <TextView

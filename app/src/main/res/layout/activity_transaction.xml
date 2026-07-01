@@ -24,7 +24,7 @@
             android:layout_height="28dp"
             android:layout_centerVertical="true"
             android:src="@android:drawable/ic_menu_revert"
-            app:tint="#000000"
+            app:tint="#5E17EB"
             android:clickable="true"
             android:focusable="true"/>
 
@@ -36,9 +36,10 @@
             android:layout_centerVertical="true"
             android:layout_marginStart="8dp"
             android:text="Thêm giao dịch"
-            android:textColor="#000000"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textColor="#5E17EB"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/madimione" />
 
         <ImageView
             android:id="@+id/imgScanQR"

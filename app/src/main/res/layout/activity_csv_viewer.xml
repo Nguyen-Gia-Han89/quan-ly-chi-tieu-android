@@ -28,9 +28,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="CHI TIẾT BÁO CÁO"
-            android:textSize="18sp"
-            android:textStyle="bold"
             android:textColor="#5E17EB"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/madimione"
             android:layout_centerInParent="true"/>
     </RelativeLayout>
 

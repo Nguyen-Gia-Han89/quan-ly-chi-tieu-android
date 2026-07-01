@@ -2,6 +2,7 @@ package com.example.quanlychitieu.view;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -172,7 +173,50 @@ public class ReportActivity extends AppCompatActivity {
         selectedMonth = sdf.format(Calendar.getInstance().getTime());
 
         // Hiển thị lên nút chọn tháng
-        btnSelectMonth.setText("Tháng " + selectedMonth + " ▾");
+        btnSelectMonth.setOnClickListener(v -> {
+            Calendar calendar = Calendar.getInstance();
+
+            DatePickerDialog dialog = new DatePickerDialog(
+                    this,
+                    // Đổi style thành THEME_HOLO_LIGHT để giao diện vòng xoay (Spinner) dễ ẩn cột Ngày hơn trên các phiên bản Android cũ/mới
+                    android.R.style.Theme_Holo_Light_Dialog_NoActionBar,
+                    (view, year, month, dayOfMonth) -> {
+
+                        String monthYear = String.format(Locale.getDefault(),
+                                "%02d/%04d",
+                                month + 1, year);
+
+                        selectedMonth = monthYear;
+                        btnSelectMonth.setText("Tháng " + monthYear + " ▾");
+
+                        loadByMonth(monthYear);
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH));
+
+            // Mẹo tìm và ẩn đi trường chọn NGÀY (Day Spinner)
+            try {
+                // Tìm và ẩn trường chọn ngày theo ID hệ thống
+                int daySpinnerId = Resources.getSystem().getIdentifier("day", "id", "android");
+                if (daySpinnerId != 0) {
+                    android.view.View daySpinner = dialog.getDatePicker().findViewById(daySpinnerId);
+                    if (daySpinner != null) {
+                        daySpinner.setVisibility(android.view.View.GONE);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // Đổi background dialog sang trong suốt để không bị viền đen của Theme Holo
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
+            }
+
+            dialog.setTitle("Chọn Tháng / Năm");
+            dialog.show();
+        });
 
         // Gọi load dữ liệu theo tháng
         transactionController.getTransactionsByMonth(selectedMonth,

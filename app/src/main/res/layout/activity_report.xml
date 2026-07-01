@@ -17,13 +17,13 @@
 
         <ImageView
             android:id="@+id/btnBackReport"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
             android:layout_centerVertical="true"
-            android:src="@android:drawable/ic_menu_revert"
-            android:tint="#5E17EB"
             android:clickable="true"
-            android:focusable="true"/>
+            android:focusable="true"
+            android:src="@android:drawable/ic_menu_revert"
+            app:tint="#5E17EB" />
 
         <TextView
             android:id="@+id/txtReportTitle"
@@ -34,8 +34,9 @@
             android:layout_marginStart="12dp"
             android:text="Báo Cáo Chi Tiêu"
             android:textColor="#5E17EB"
-            android:textSize="20sp"
-            android:textStyle="bold"/>
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/madimione"/>
 
         <TextView
             android:id="@+id/btnSelectMonth"
@@ -46,7 +47,7 @@
             android:background="@android:color/white"
             android:paddingHorizontal="12dp"
             android:paddingVertical="6dp"
-            android:text="Tháng 06/2026 ▾"
+            android:text="Tháng 07/2026 ▾"
             android:textColor="#5E17EB"
             android:textStyle="bold"
             android:textSize="14sp"/>

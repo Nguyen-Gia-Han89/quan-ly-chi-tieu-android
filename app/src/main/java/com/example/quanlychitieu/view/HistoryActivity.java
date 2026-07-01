@@ -206,49 +206,49 @@ public class HistoryActivity extends AppCompatActivity {
 
     // ================= MONTH PICKER =================
     private void showMonthPicker() {
+        Calendar calendar = Calendar.getInstance();
 
-        String[] months = {
-                "01", "02", "03", "04", "05", "06",
-                "07", "08", "09", "10", "11", "12"
-        };
+        // Sử dụng style Theme_Holo_Light để ép hiển thị dạng vòng xoay (Spinner)
+        DatePickerDialog dialog = new DatePickerDialog(
+                this,
+                android.R.style.Theme_Holo_Light_Dialog_NoActionBar,
+                (view, year, month, dayOfMonth) -> {
 
-        String[] years = {"2024", "2025", "2026", "2027"};
+                    // Định dạng MM/yyyy từ tháng và năm được chọn
+                    selectedMonthYear = String.format(Locale.getDefault(),
+                            "%02d/%04d",
+                            month + 1, year);
 
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
-        builder.setTitle("Chọn tháng");
+                    btnSelectMonth.setText("Tháng " + selectedMonthYear + " ▾");
 
-        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
-        layout.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+                    // Tải lại dữ liệu lịch sử theo tháng mới chọn
+                    loadTransactionHistory();
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH));
 
-        android.widget.NumberPicker monthPicker = new android.widget.NumberPicker(this);
-        monthPicker.setMinValue(0);
-        monthPicker.setMaxValue(months.length - 1);
-        monthPicker.setDisplayedValues(months);
+        // Mẹo tìm và ẩn trường chọn NGÀY (Day Spinner)
+        try {
+            int daySpinnerId = android.content.res.Resources.getSystem()
+                    .getIdentifier("day", "id", "android");
+            if (daySpinnerId != 0) {
+                android.view.View daySpinner = dialog.getDatePicker().findViewById(daySpinnerId);
+                if (daySpinner != null) {
+                    daySpinner.setVisibility(android.view.View.GONE);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        android.widget.NumberPicker yearPicker = new android.widget.NumberPicker(this);
-        yearPicker.setMinValue(0);
-        yearPicker.setMaxValue(years.length - 1);
-        yearPicker.setDisplayedValues(years);
+        // Đổi background sang trong suốt để xóa viền đen thừa của Theme Holo cũ
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(
+                    new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
+        }
 
-        layout.addView(monthPicker);
-        layout.addView(yearPicker);
-
-        builder.setView(layout);
-
-        builder.setPositiveButton("OK", (dialog, which) -> {
-
-            String month = months[monthPicker.getValue()];
-            String year = years[yearPicker.getValue()];
-
-            selectedMonthYear = month + "/" + year;
-
-            btnSelectMonth.setText("Tháng " + selectedMonthYear + " ▾");
-
-            loadTransactionHistory();
-        });
-
-        builder.setNegativeButton("Hủy", null);
-
-        builder.show();
+        dialog.setTitle("Chọn Tháng / Năm");
+        dialog.show();
     }
 }

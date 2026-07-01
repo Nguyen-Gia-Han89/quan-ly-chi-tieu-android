@@ -27,17 +27,18 @@
             <ImageView
                 android:id="@+id/btnBackHistory"
                 android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_height="match_parent"
                 android:src="@android:drawable/ic_menu_revert"
-                app:tint="#5E17EB"/>
+                app:tint="#5E17EB" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Nhật ký giao dịch"
-                android:textSize="20sp"
+                android:textColor="#5E17EB"
+                android:textSize="22sp"
                 android:textStyle="bold"
-                android:textColor="#1F1F1F"
+                android:fontFamily="@font/madimione"
                 android:layout_marginStart="12dp"/>
         </LinearLayout>
 
