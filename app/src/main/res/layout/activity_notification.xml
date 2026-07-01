@@ -25,7 +25,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="Thông báo cảnh báo ngân sách"
+            android:text="Thông báo"
             android:textColor="#5E17EB"
             android:textSize="22sp"
             android:textStyle="bold"

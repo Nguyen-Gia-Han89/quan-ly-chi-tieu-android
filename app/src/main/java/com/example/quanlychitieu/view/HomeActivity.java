@@ -25,8 +25,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 public class HomeActivity extends AppCompatActivity {
 
-    private LinearLayout btnHistory, btnStats, btnCreateExpense;
-    private CardView btnProfile;
+    private LinearLayout btnStats, btnCreateExpense;
+
     private TextView txtTotalSpent;
     private TextView txtTotalIncome;
     private TextView txtHomeUserName;
@@ -42,8 +42,6 @@ public class HomeActivity extends AppCompatActivity {
 
         transactionController = new TransactionController();
 
-        btnProfile = findViewById(R.id.btnProfile);
-        btnHistory = findViewById(R.id.btnHistory);
         btnStats = findViewById(R.id.btnStats);
         btnCreateExpense = findViewById(R.id.btnCreateExpense);
         txtTotalSpent = findViewById(R.id.txtTotalSpent);
@@ -81,16 +79,6 @@ public class HomeActivity extends AppCompatActivity {
         });
 
         setupNotificationBadge(bottomNavigation);
-
-        btnProfile.setOnClickListener(v -> {
-            Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
-            startActivity(intent);
-        });
-
-        btnHistory.setOnClickListener(v -> {
-            Intent intent = new Intent(HomeActivity.this, HistoryActivity.class);
-            startActivity(intent);
-        });
 
         btnStats.setOnClickListener(v -> {
             Intent intent = new Intent(HomeActivity.this, StatsActivity.class);
@@ -154,7 +142,7 @@ public class HomeActivity extends AppCompatActivity {
                     txtTotalSpent.setTextColor(Color.RED);
                     Toast.makeText(HomeActivity.this, "Cảnh báo: Chi tiêu vượt quá ngân sách cài đặt!", Toast.LENGTH_LONG).show();
                 } else {
-                    txtTotalSpent.setTextColor(Color.parseColor("#5E17EB"));
+                    txtTotalSpent.setTextColor(Color.parseColor("#A21F1F"));
                 }
             }
 
@@ -162,7 +150,7 @@ public class HomeActivity extends AppCompatActivity {
             public void onFailure(String errorMessage) {
                 // Nếu lỗi mạng không lấy được tiền từ Firebase thì chạy tạm số 0
                 txtTotalSpent.setText("0 VNĐ");
-                txtTotalSpent.setTextColor(Color.parseColor("#5E17EB"));
+                txtTotalSpent.setTextColor(Color.parseColor("#A21F1F"));
                 Toast.makeText(HomeActivity.this, "Không thể tải dữ liệu: " + errorMessage, Toast.LENGTH_SHORT).show();
             }
         });

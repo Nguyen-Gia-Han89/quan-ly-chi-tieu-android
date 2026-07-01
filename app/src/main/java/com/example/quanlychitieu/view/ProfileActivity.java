@@ -28,6 +28,11 @@ import com.example.quanlychitieu.controller.BudgetController;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -107,7 +112,15 @@ public class ProfileActivity extends AppCompatActivity {
         setReminderTimeText(chosenHour, chosenMinute);
 
         if (!savedAvatarUri.isEmpty()) {
-            imgAvatar.setImageURI(Uri.parse(savedAvatarUri));
+            // SỬA ĐỔI: Thêm khối try-catch bảo vệ ứng dụng khỏi crash do URI cũ hết hạn
+            try {
+                imgAvatar.setImageURI(Uri.parse(savedAvatarUri));
+            } catch (SecurityException e) {
+                e.printStackTrace();
+                // Nếu lỗi, xóa URI lỗi đó đi và đặt lại ảnh mặc định
+                imgAvatar.setImageResource(android.R.drawable.ic_menu_gallery);
+                pref.edit().remove("user_avatar_uri").apply();
+            }
         }
     }
 
@@ -116,12 +129,44 @@ public class ProfileActivity extends AppCompatActivity {
                 new ActivityResultContracts.GetContent(),
                 uri -> {
                     if (uri != null) {
-                        selectedImageUri = uri;
-                        imgAvatar.setImageURI(uri);
-                        Toast.makeText(this, "Đã chọn ảnh thành công!", Toast.LENGTH_SHORT).show();
+                        // SỬA ĐỔI: Sao chép file trực tiếp vào bộ nhớ trong của ứng dụng
+                        Uri internalUri = copyUriToInternalStorage(this, uri);
+                        if (internalUri != null) {
+                            selectedImageUri = internalUri;
+                            imgAvatar.setImageURI(internalUri);
+                            Toast.makeText(this, "Đã chọn ảnh thành công!", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "Lỗi khi xử lý hình ảnh!", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
         );
+    }
+
+    // THÊM MỚI: Hàm phụ trợ sao chép tệp để sở hữu quyền truy cập vĩnh viễn
+    private Uri copyUriToInternalStorage(Context context, Uri sourceUri) {
+        try {
+            InputStream inputStream = context.getContentResolver().openInputStream(sourceUri);
+            if (inputStream == null) return null;
+
+            // Đặt tên tệp avatar cố định bên trong thư mục files của ứng dụng
+            File file = new File(context.getFilesDir(), "user_avatar_cached.jpg");
+            OutputStream outputStream = new FileOutputStream(file);
+
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+
+            outputStream.close();
+            inputStream.close();
+
+            return Uri.fromFile(file);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private void setupListeners() {
@@ -254,6 +299,7 @@ public class ProfileActivity extends AppCompatActivity {
             alarmManager.cancel(pendingIntent);
         }
     }
+
     public static class ReminderReceiver extends BroadcastReceiver {
 
         @android.annotation.SuppressLint("ScheduleExactAlarm")
